@@ -1,5 +1,6 @@
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
+import com.jsoniter.output.JsonStream;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -31,48 +32,56 @@ class WSCore extends WebSocketServer {
     }
 
     @Override
-    public void onClose (WebSocket webSocket, int i, String reason, boolean b) {
-
-    }
-
-    @Override
     public void onMessage (WebSocket webSocket, String s) {
         Map<String, Any> message_preParser = JsonIterator.deserialize(s).asMap();
 
         switch (message_preParser.get("type").toString()) {
             case ("MESSAGE-POST") -> {
-                Commands.MessagePost task = JsonIterator.deserialize(s, Commands.MessagePost.class);
+                DataCommands.MessagePost task = JsonIterator.deserialize(s, DataCommands.MessagePost.class);
+                if (task == null) {
+                    return;
+                }
+
+                clients.sendCommandToChannel(task.channel, JsonStream.serialize(task));
             }
             case ("CHANNEL-CONTROL-CREATE") -> {
-
+                DataCommands.ChannelCreate task = JsonIterator.deserialize(s, DataCommands.ChannelCreate.class);
             }
-            case ("CHANNEL-USERCONTROL-ADD") -> {
-
+            case ("CHANNEL-USERCONTROL-ACCESS") -> {
+                DataCommands.ChannelUserControlAccess task = JsonIterator.deserialize(s, DataCommands.ChannelUserControlAccess.class);
             }
             case ("SYSTEM-CHANNELS-LISTEN") -> {
+                SystemCommands.ListenChannel task = JsonIterator.deserialize(s, SystemCommands.ListenChannel.class);
+                if (task == null) {
+                    return;
+                }
 
+                if (task.status) {
+                    clients.joinClientToChannel(webSocket, task.channel);
+                } else {
+                    clients.LeaveClientFromChannel(webSocket, task.channel);
+                }
             }
             default -> {
                 return;
             }
         }
 
-        System.out.println(JsonIterator.deserialize(task));
+        // System.out.println(JsonIterator.deserialize(task));
+    }
+
+    @Override
+    public void onClose (WebSocket webSocket, int i, String reason, boolean b) {
+        clients.removeClient(webSocket);
     }
 
     @Override
     public void onError (WebSocket webSocket, Exception e) {
-        
+        clients.removeClient(webSocket);
     }
 
     @Override
     public void onStart () {
         System.out.println("Server started on port 8080");
-    }
-
-    public static void main (String[] args) {
-        int port = 8080;
-        WSCore server = new WSCore(port);
-        server.start();
     }
 }

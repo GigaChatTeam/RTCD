@@ -3,12 +3,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PermissionOperator extends DBOperator {
-
     public static boolean validateToken (int id, String user_token) {
         String sql = """
             SELECT token
-            FROM tokens
-            WHERE account_id = ?
+            FROM public.tokens
+            WHERE client = ?
         """;
         PreparedStatement stmt;
 

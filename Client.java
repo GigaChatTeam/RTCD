@@ -3,13 +3,13 @@ import org.java_websocket.WebSocket;
 import java.util.ArrayList;
 
 public class Client {
-    private final WebSocket sock;
+    protected final WebSocket socket;
     private final int id;
     private final String token;
     private ArrayList<Integer> channels;
 
     public Client (WebSocket sock, int id, String token) {
-        this.sock = sock;
+        this.socket = sock;
         this.id = id;
         this.token = token;
     }
@@ -22,10 +22,10 @@ public class Client {
     }
 
     public void send (String data) {
-        sock.send(data);
+        socket.send(data);
     }
     public void close (int code, String reason) {
-        sock.close(code, reason);
+        socket.close(code, reason);
     }
 
     public ArrayList<Integer> getChannels () {
