@@ -104,4 +104,34 @@ public class DataOperator extends DBOperator {
         }
         return channel_id;
     }
+
+    public static void addUserToChannel (int channel, int user) {
+        PreparedStatement stmt;
+
+        try {
+            stmt = conn.prepareStatement(String.format(
+            """
+                INSERT INTO channels.users_%d (id, join)
+                VALUES (?, ?)
+            """, channel));
+            stmt.setInt(1, user);
+            stmt.setTimestamp(2, Timestamp.from(Instant.now()));
+
+            stmt.executeUpdate();
+        } catch (SQLException ignored) {}
+    }
+    public static void removeUserFromChannel (int channel, int user) {
+        PreparedStatement stmt;
+
+        try {
+            stmt = conn.prepareStatement(String.format(
+            """
+                INSERT INTO channels.users_%d (left)
+                VALUES (?)
+            """, channel));
+            stmt.setTimestamp(1, Timestamp.from(Instant.now()));
+
+            stmt.executeUpdate();
+        } catch (SQLException ignored) {}
+    }
 }

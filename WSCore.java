@@ -62,6 +62,17 @@ class WSCore extends WebSocketServer {
             }
             case ("CHANNEL-USERCONTROL-ACCESS") -> {
                 DataCommands.ChannelUserControlAccess task = JsonIterator.deserialize(s, DataCommands.ChannelUserControlAccess.class);
+                if (task == null) {
+                    return;
+                }
+
+                if (task.access) {
+                    DataOperator.addUserToChannel(task.id, task.user);
+                    clients.sendCommandToChannel(task.id, JsonStream.serialize(message_preParser));
+                } else {
+                    clients.sendCommandToChannel(task.id, JsonStream.serialize(message_preParser));
+                    DataOperator.removeUserFromChannel(task.id, task.user);
+                }
             }
             case ("SYSTEM-CHANNELS-LISTEN") -> {
                 SystemCommands.ListenChannel task = JsonIterator.deserialize(s, SystemCommands.ListenChannel.class);

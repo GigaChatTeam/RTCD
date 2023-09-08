@@ -18,8 +18,9 @@ class Clients {
     public void addClient (Client client) {
         clients.put(client.socket, client);
     }
-    public void removeClient (Client client) {
-        return;
+    public Boolean isClientConnected (int client) {
+        return clients.values().stream()
+            .anyMatch(c -> c.id == client);
     }
     public void removeClient (WebSocket socket) {
         clients.remove(socket);
