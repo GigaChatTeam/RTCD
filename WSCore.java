@@ -46,6 +46,19 @@ class WSCore extends WebSocketServer {
             }
             case ("CHANNEL-CONTROL-CREATE") -> {
                 DataCommands.ChannelCreate task = JsonIterator.deserialize(s, DataCommands.ChannelCreate.class);
+                if (task == null) {
+                    return;
+                }
+
+                Integer channel_id = DataOperator.createChannel(task.title, task.id);
+                if (channel_id == null) {
+                    return;
+                }
+
+                DataCommands.ChannelCreate response = new DataCommands.ChannelCreate(channel_id);
+
+                clients.joinClientToChannel(webSocket, channel_id);
+                clients.sendCommandToChannel(channel_id, JsonStream.serialize(response));
             }
             case ("CHANNEL-USERCONTROL-ACCESS") -> {
                 DataCommands.ChannelUserControlAccess task = JsonIterator.deserialize(s, DataCommands.ChannelUserControlAccess.class);
@@ -62,12 +75,7 @@ class WSCore extends WebSocketServer {
                     clients.LeaveClientFromChannel(webSocket, task.channel);
                 }
             }
-            default -> {
-                return;
-            }
         }
-
-        // System.out.println(JsonIterator.deserialize(task));
     }
 
     @Override

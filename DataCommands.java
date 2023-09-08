@@ -4,10 +4,6 @@ public class DataCommands {
         public int id = 0;
         public int channel;
         public int author;
-
-        public void setId (int id) {
-            this.id = id;
-        }
     }
     public static class MessagePost extends Message {
         public String type = "MESSAGE-POST";
@@ -20,13 +16,14 @@ public class DataCommands {
     private abstract static class ChannelControl {
         public int id = 0;
 
-        public void setId (int id) {
-            this.id = id;
-        }
     }
     public static class ChannelCreate extends ChannelControl {
         public String type = "CHANNEL-CONTROL-CREATE";
         public String title;
+
+        public ChannelCreate (int id) {
+            this.id = id;
+        }
     }
     private abstract static class ChannelUserControl extends ChannelControl {
         public int user;
