@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Helper {
-    protected static class ConnectionPath {
+    public static class ConnectionPath {
         String[] pathParts;
         Map<String, String> params;
 

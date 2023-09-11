@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Client {
     protected final WebSocket socket;
-    private final int id;
+    public final int id;
     private final String token;
     private ArrayList<Integer> channels;
 
@@ -15,10 +15,14 @@ public class Client {
     }
 
     public void addListen (int channel) {
-        this.channels.add(channel);
+        if (!channels.contains(channel)) {
+            channels.add(channel);
+        }
     }
     public void removeListen (int channel) {
-        this.channels.remove(channel);
+        if (channels.contains(channel)) {
+            channels.remove(channel);
+        }
     }
 
     public void send (String data) {

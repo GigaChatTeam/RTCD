@@ -36,4 +36,13 @@ class Clients {
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.removeListen(channel));
     }
+
+    public Integer getId(WebSocket webSocket) {
+        for (Client client : clients.values()) {
+            if (client.socket == webSocket) {
+                return client.id;
+            }
+        }
+        return -1;
+    }
 }
