@@ -35,6 +35,8 @@ class WSCore extends WebSocketServer {
     public void onMessage (WebSocket webSocket, String s) {
         Map<String, Any> message_preParser = JsonIterator.deserialize(s).asMap();
 
+        System.out.print(clients.getId(webSocket)); System.out.println(message_preParser);
+
         switch (message_preParser.get("type").toString()) {
             case ("MESSAGE-POST") -> {
                 DataCommands.MessagePost task = JsonIterator.deserialize(s, DataCommands.MessagePost.class);
