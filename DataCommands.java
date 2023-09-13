@@ -20,6 +20,10 @@ public class DataCommands {
     public static class ChannelCreate extends ChannelControl {
         public String type = "CHANNEL-CONTROL-CREATE";
         public String title;
+
+        public ChannelCreate(int channelId) {
+            id = channelId;
+        }
     }
     private abstract static class ChannelUserControl extends ChannelControl {
         public int user;
