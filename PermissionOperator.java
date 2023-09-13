@@ -7,7 +7,8 @@ public class PermissionOperator extends DBOperator {
         String sql = """
             SELECT token
             FROM public.tokens
-            WHERE client = ?
+            WHERE
+                client = ?
         """;
         PreparedStatement stmt;
 
