@@ -49,6 +49,11 @@ Commands (prefix `in` means "not implemented") (transmission in a form of JSON)
 * * * `user`: int64 - ID of a target user
 * * * `id`: int64 - ID of a target channel
 * * * `access`: bool - `true` (add a user if it doesn't exist yet) or `false` (delete a user, if it does exist yet)
+* * Enable/disable active channel listening
+* * * `type`: str - `SYSTEM-CHANNELS-LISTEN`
+* * * `user`: int64 - ID of a user to listen to the channel
+* * * `channel`: int64 - ID of a target channel
+* * * `status`: bool - `true` (enables wiretapping if it is not already enabled) or `false` (disables wiretapping if it was enabled)
 * Outgoing
 * * Sending a message
 * * * `type`: str - `MESSAGE-POST`
