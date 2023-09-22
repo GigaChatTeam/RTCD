@@ -20,7 +20,7 @@ public class PermissionOperator extends DBOperator {
             rs.next();
 
             String token = rs.getString(1);
-            return Helper.verifier(user_token, token.getBytes());
+            return Helper.verifierBCrypt(user_token, token.getBytes());
         } catch (SQLException e) {
             return false;
         }
