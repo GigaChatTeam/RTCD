@@ -5,6 +5,11 @@ import java.util.HashMap;
 class Clients {
     private final HashMap<WebSocket, Client> clients = new HashMap<>();
 
+    public void sendAll(String message) {
+        clients.keySet().parallelStream()
+                .forEach(client -> client.send(message));
+    }
+
     public void sendCommandToChannel (int channel, String data) {
         clients.values().parallelStream()
                 .filter(c -> c.getChannels().contains(channel))
