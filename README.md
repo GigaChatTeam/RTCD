@@ -1,7 +1,9 @@
 # Real-time content delivery server for the GigaChat project
-Operating on websockets, written in Java.
+Operating on WebSockets, written in Java.
 
-# API documentation:
+# API documentation
+
+### Connection
 
 Entry point
 
@@ -12,71 +14,23 @@ Arguments
 * `id`: int64 - user ID to log in
 * `token`: str - token for user authorization
 
-Commands (prefix `in` means "not implemented") (transmission in a form of JSON)
+Result
 
-* Incoming
-* * Sending a message
-* * * `type`: str - `MESSAGE-POST`
-* * * `channel`: int64 - ID of a target channel for sending a message
-* * * `author`: int64 - ID of a user who is sending a message
-* * * `text`: str - message text
-* * `in` Edit a message
-* * * `type`: str - `MESSAGE-DELETE`
-* * * `channel`: int64 - ID of a target channel for deleting a message
-* * * `id`: int64 - ID of a target message for deleting
-* * * `text`: str - new message text
-* * `in` Deleting a message
-* * * `type`: str - `MESSAGE-DELETE`
-* * * `channel`: int64 - ID of a target channel for deleting a message
-* * * `id`: int64 - ID of a target message for deleting
-* * `in` Forwarding a message
-* * * `type`: str - `MESSAGE-FORWARD`
-* * * `channel`: int64 - ID of a target channel for forward a message
-* * * `author`: int64 - ID of a user who is forwarding a message
-* * * `source_channel`: int64 - ID of a source channel
-* * * `source_message`: int64 - ID of a source message
-* * Creating a channel
-* * * `type`: str - `CHANNEL-CONTROL-CREATE`
-* * * `author`: int64 - a sender of a command
-* * * `title`: str - desired channel name
-* * `in` Delete a channel
-* * * `type`: str - `CHANNEL-CONTROL-DELETE`
-* * * `author`: int64 - a sender of a command
-* * * `id`: int64 - ID of a target channel
-* * Add/remove a user to a channel
-* * * `type`: str - `CHANNEL-USERCONTROL-PRESENCE`
-* * * `author`: int64 - a sender of a command
-* * * `user`: int64 - ID of a target user
-* * * `id`: int64 - ID of a target channel
-* * * `access`: bool - `true` (add a user if it doesn't exist yet) or `false` (delete a user, if it does exist yet)
-* * Enable/disable active channel listening
-* * * `type`: str - `SYSTEM-CHANNELS-LISTEN`
-* * * `user`: int64 - ID of a user to listen to the channel
-* * * `channel`: int64 - ID of a target channel
-* * * `status`: bool - `true` (enables wiretapping if it is not already enabled) or `false` (disables wiretapping if it was enabled)
-* Outgoing
-* * Sending a message
-* * * `type`: str - `MESSAGE-POST`
-* * * `channel`: int64 - ID of a target channel for sending a message
-* * * `author`: int64 - ID of a user who is sending a message
-* * * `text`: str - message text
-* * `in` Edit a message
-* * * `type`: str - `MESSAGE-DELETE`
-* * * `channel`: int64 - ID of a target channel for deleting a message
-* * * `id`: int64 - ID of a target message for deleting
-* * * `text`: str - new message text
-* * `in` Deleting a message
-* * * `type`: str - `MESSAGE-DELETE`
-* * * `channel`: int64 - ID of a target channel for deleting a message
-* * * `id`: int64 - ID of a target message for deleting
-* * `in` Forwarding a message
-* * * `type`: str - `MESSAGE-FORWARD`
-* * * `channel`: int64 - ID of a target channel for forward a message
-* * * `author`: int64 - ID of a user who is forwarding a message
-* * * `source_channel`: int64 - ID of a source channel
-* * * `source_message`: int64 - ID of a source message
-* * Add/remove a user to a channel
-* * * `type`: str - `CHANNEL-USERCONTROL-PRESENCE`
-* * * `user`: int64 - ID of a target user
-* * * `id`: int64 - ID of a target channel
-* * * `access`: bool - `true` (add a user if it doesn't exist yet) or `false` (delete a user, if it does exist yet)
+Was the authorization completed?
+* TRUE
+* * The connection will be established, you will be notified.
+* FALSE
+* * The connection will be closed with code `406`
+
+### Communication
+
+Common commands template
+
+**\<COMMAND\>%\<CONTROLHASH\>%\<DATA\>**
+
+* COMMAND - string of upper latin letters and the `-` signs, which are the separator of the identification of the team categories. Examples:
+* * `CHANNELS-USE-MESSAGES-POST-NEW`
+* * `CHANNELS-ADMIN-USERS-ADD`
+* * `CHANNELS-USE-MESSAGES-ATTACHMENTS-REORGANIZE`
+* CONTROLHASH - an arbitrary string to be indexed by the client that sent it. It is recommended to use a hash-code from DATA
+* DATA - string in JSON format containing the command arguments
