@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Map.entry;
+
 public class Helper {
     public static class ConnectionPath {
         String[] pathParts;
@@ -35,6 +37,11 @@ public class Helper {
         public void parseData () {
             postData = JsonIterator.deserialize(preData).asMap();
         }
+    }
+
+    @Contract("_ -> new")
+    public static @NotNull MessagePacket parsePacket (@NotNull String packet) {
+        return null;
     }
 
     @Contract("_ -> new")
@@ -68,7 +75,7 @@ public class Helper {
         return BCrypt.verifyer().verify(Arrays.copyOfRange(data.toCharArray(), 0, Math.min(data.toCharArray().length, 72)), hash_data).verified;
     }
 
-    public String SHA512 (String string) {
+    public static String SHA512(String string) {
         MessageDigest md;
 
         try {
@@ -85,5 +92,13 @@ public class Helper {
         }
 
         return sb.toString();
+    }
+
+    public static class Packets {
+        public static Map<String, String> CONNECTION_READY = Map.ofEntries(
+            entry("type", "system"),
+            entry("target", "connection"),
+            entry("status", "connected")
+        );
     }
 }
