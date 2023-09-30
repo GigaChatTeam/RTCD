@@ -25,23 +25,20 @@ public class Helper {
     }
 
     public static class MessagePacket {
-        String[] intention;
-        String preData;
+        final String hash;
+        final String[] intention;
+        final String preData;
         Map<String, Any> postData;
 
-        public MessagePacket (String[] intention, String data) {
+        public MessagePacket (String[] intention, String controlSum, String data) {
             this.intention = intention;
+            this.hash = controlSum;
             this.preData = data;
         }
 
         public void parseData () {
             postData = JsonIterator.deserialize(preData).asMap();
         }
-    }
-
-    @Contract("_ -> new")
-    public static @NotNull MessagePacket parsePacket (@NotNull String packet) {
-        return null;
     }
 
     @Contract("_ -> new")
@@ -62,13 +59,10 @@ public class Helper {
     }
 
     @Contract("_ -> new")
-    public static @NotNull MessagePacket parseMessagePacket (@NotNull String packet) {
-        String[] parts = packet.split("%");
+    public static @NotNull MessagePacket parsePacket (@NotNull String packet) {
+        String[] splitPacket = packet.split("%");
 
-        String[] intent = new String[parts.length - 1];
-        System.arraycopy(parts, 0, intent, 0, parts.length - 1);
-
-        return new MessagePacket(intent, parts[parts.length - 1]);
+        return new MessagePacket(splitPacket[0].split("-"), splitPacket[1], splitPacket[2]);
     }
 
     public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {
