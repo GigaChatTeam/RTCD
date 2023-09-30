@@ -28,7 +28,7 @@ public class Helper {
         final String hash;
         final String[] intention;
         final String preData;
-        Map<String, Any> postData;
+        Object postData;
 
         public MessagePacket (String[] intention, String controlSum, String data) {
             this.intention = intention;
@@ -36,8 +36,8 @@ public class Helper {
             this.preData = data;
         }
 
-        public void parseData () {
-            postData = JsonIterator.deserialize(preData).asMap();
+        public void parseData (Class pattern) {
+            postData = JsonIterator.deserialize(preData, pattern);
         }
     }
 

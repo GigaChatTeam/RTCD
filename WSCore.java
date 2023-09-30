@@ -1,4 +1,3 @@
-import com.jsoniter.JsonIterator;
 import com.jsoniter.output.JsonStream;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -24,10 +23,9 @@ class WSCore extends WebSocketServer {
             if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
                 clients.addClient(new Client(webSocket, Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token")));
 
-                String response = JsonStream.serialize(Helper.Packets.CONNECTION_READY);
+                String response = JsonStream.serialize(Helper.SystemPackets.CONNECTION_READY);
 
                 webSocket.send("CONNECTION%" + Helper.SHA512(response) + "%" + response);
-
             } else {
                 webSocket.close(401, "InvalidAuthorizationData");
             }
@@ -38,8 +36,16 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onMessage (WebSocket webSocket, String message) {
-        System.out.println(message);
-        clients.sendAll(message);
+        Helper.MessagePacket packet = Helper.parsePacket(message);
+
+        switch (packet.intention) {
+            case CommandsIntentions.ADMIN_CHANNELS_CREATE.intents -> {
+                System.out.println("Да, оно заработало!");
+            }
+            default -> {
+                return;
+            }
+        }
     }
 
     @Override
