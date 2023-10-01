@@ -42,7 +42,7 @@ class Clients {
                 .forEach(c -> c.removeListen(channel));
     }
 
-    public Integer getId(WebSocket webSocket) {
+    public Integer getID (WebSocket webSocket) {
         for (Client client : clients.values()) {
             if (client.socket == webSocket) {
                 return client.id;

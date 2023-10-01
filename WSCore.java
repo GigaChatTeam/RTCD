@@ -1,3 +1,4 @@
+import com.jsoniter.JsonIterator;
 import com.jsoniter.output.JsonStream;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -8,9 +9,15 @@ import java.net.InetSocketAddress;
 
 class WSCore extends WebSocketServer {
     private final Clients clients = new Clients();
+    private final int port;
 
     public WSCore (int port) {
         super(new InetSocketAddress(port));
+        this.port = port;
+    }
+
+    private boolean clientIDVerifier (WebSocket webSocket, long id) {
+        return id == clients.getID(webSocket) && id != -1;
     }
 
     @Override
@@ -23,7 +30,7 @@ class WSCore extends WebSocketServer {
             if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
                 clients.addClient(new Client(webSocket, Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token")));
 
-                String response = JsonStream.serialize(Helper.SystemPackets.CONNECTION_READY);
+                String response = JsonStream.serialize(SystemResponses.Errors.CONNECTION_READY);
 
                 webSocket.send("CONNECTION%" + Helper.SHA512(response) + "%" + response);
             } else {
@@ -36,15 +43,31 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onMessage (WebSocket webSocket, String message) {
-        Helper.MessagePacket packet = Helper.parsePacket(message);
+        System.out.println(message); // DEBUG
+        clients.sendAll(message); // DEBUG
 
-        switch (packet.intention) {
-            case CommandsIntentions.ADMIN_CHANNELS_CREATE.intents -> {
-                System.out.println("Да, оно заработало!");
+        Helper.MessagePacket packet = Helper.parsePacket(message);
+        Commands cmd = Commands.byIntents(packet.intention);
+        try {
+            packet.parseData(cmd.pattern);
+        } catch (NullPointerException _) {
+            webSocket.send(JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED));
+            return;
+        }
+
+        switch (cmd) {
+            case ADMIN_CHANNELS_CREATE -> {
+
             }
-            default -> {
-                return;
+            case ADMIN_CHANNELS_USERS_JOIN -> {
+
             }
+            case USER_CHANNELS_MESSAGES_POST_NEW -> {
+                if (!clientIDVerifier(webSocket, packet.postData.author)) {
+                    webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
+                }
+            }
+            default -> webSocket.send(JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED));
         }
     }
 
@@ -60,6 +83,6 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onStart () {
-        System.out.println("Server started on port 8095");
+        System.out.printf("Server started on port %s", port);
     }
 }

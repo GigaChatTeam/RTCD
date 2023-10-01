@@ -88,11 +88,5 @@ public class Helper {
         return sb.toString();
     }
 
-    public static class SystemPackets {
-        public static Map<String, String> CONNECTION_READY = Map.ofEntries(
-            entry("type", "system"),
-            entry("target", "connection"),
-            entry("status", "connected")
-        );
-    }
+
 }
