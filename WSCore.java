@@ -52,26 +52,28 @@ class WSCore extends WebSocketServer {
         System.out.println(message); // DEBUG
         clients.sendAll(message); // DEBUG
 
-//        Helper.MessagePacket packet = Helper.parsePacket(message);
-//        Commands cmd = Commands.byIntents(packet.intention);
-//        try {
-//            packet.parseData(cmd.pattern);
-//        } catch (NullPointerException _) {
-//            webSocket.send(JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS));
-//            return;
-//        }
-//
-//        switch (cmd) {
-//            case ADMIN_CHANNELS_CREATE, ADMIN_CHANNELS_USERS_JOIN -> {
-//
-//            }
-//            case USER_CHANNELS_MESSAGES_POST_NEW -> {
-//                if (!clientIDVerifier(webSocket, packet.postData. )) {
-//                    webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
-//                }
-//            }
-//            default -> webSocket.send(JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED));
-//        }
+        Helper.MessagePacket packet = Helper.parsePacket(message);
+        Commands cmd = Commands.byIntents(packet.intention);
+
+        try {
+            packet.parseData(cmd.pattern);
+        } catch (NullPointerException _) {
+            webSocket.send(JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS));
+            return;
+        }
+
+        switch (cmd) {
+            case ADMIN_CHANNELS_CREATE, ADMIN_CHANNELS_USERS_JOIN -> {
+                break;
+            }
+            case USER_CHANNELS_MESSAGES_POST_NEW -> {
+                if (!clientIDVerifier(webSocket, ((DataCommands.ChannelMessagesPostNew) packet.postData).author)) {
+                    webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
+                }
+                break;
+            }
+            default -> webSocket.send(JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED));
+        }
     }
 
     @Override
