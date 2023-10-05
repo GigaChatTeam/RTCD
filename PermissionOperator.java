@@ -17,10 +17,15 @@ public class PermissionOperator extends DBOperator {
             stmt.setInt(1, id);
 
             ResultSet rs = stmt.executeQuery();
-            rs.next();
 
-            String token = rs.getString(1);
-            return Helper.verifierBCrypt(user_token, token.getBytes());
+            while (rs.next()) {
+                if (Helper.verifierBCrypt(user_token, rs.getString(1).getBytes())) return true;
+            }
+
+            stmt.close();
+            rs.close();
+
+            return false;
         } catch (SQLException e) {
             return false;
         }
