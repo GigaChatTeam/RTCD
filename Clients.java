@@ -10,20 +10,20 @@ class Clients {
                 .forEach(client -> client.send(message));
     }
 
-    public void sendCommandToChannel (int channel, String data) {
+    public void sendCommandToChannel (long channel, String data) {
         clients.values().parallelStream()
                 .filter(c -> c.getChannels().contains(channel))
                 .forEach(c -> c.send(data));
     }
 
-    public Boolean userIsConnected(int channel) {
+    public Boolean userIsConnected(long channel) {
         return null;
     }
 
     public void addClient (Client client) {
         clients.put(client.socket, client);
     }
-    public Boolean isClientConnected (int client) {
+    public Boolean isClientConnected (long client) {
         return clients.values().stream()
             .anyMatch(c -> c.id == client);
     }
@@ -31,23 +31,26 @@ class Clients {
         clients.remove(socket);
     }
 
-    public void joinClientToChannel (WebSocket socket, int channel) {
+    public void joinClientToChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.addListen(channel));
     }
-    public void LeaveClientFromChannel (WebSocket socket, int channel) {
+    public void LeaveClientFromChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.removeListen(channel));
     }
 
-    public Integer getID (WebSocket webSocket) {
-        for (Client client : clients.values()) {
-            if (client.socket == webSocket) {
-                return client.id;
-            }
-        }
+    public long getID (WebSocket webSocket) {
+        for (Client client : clients.values()) if (client.socket == webSocket) return client.id;
         return -1;
+    }
+
+    public void changeStatus (WebSocket webSocket, boolean status) {
+        clients.get(webSocket).status = status;
+    }
+    public boolean getStatus (WebSocket webSocket) {
+        return clients.get(webSocket).status;
     }
 }

@@ -8,7 +8,7 @@ import java.time.Instant;
 
 public class DataOperator extends DBOperator {
     @Nullable
-    public static Integer createChannel (String title, int owner) {
+    public static Long createChannel (String title, long owner) {
         String query_createChannel =
             """
                 INSERT INTO public.channels (title)
@@ -16,7 +16,7 @@ public class DataOperator extends DBOperator {
                 RETURNING id
             """;
         PreparedStatement stmt;
-        int channel_id;
+        long channel_id;
         try {
             stmt = conn.prepareStatement(query_createChannel);
             stmt.setString(1, title);
@@ -85,7 +85,7 @@ public class DataOperator extends DBOperator {
                     INSERT INTO channels.users_%d (id, join)
                     VALUES (?, ?)
                 """, channel_id));
-            stmt.setInt(1, owner);
+            stmt.setLong(1, owner);
             stmt.setTimestamp(2, Timestamp.from(Instant.now()));
             stmt.executeUpdate();
 
@@ -94,7 +94,7 @@ public class DataOperator extends DBOperator {
                     INSERT INTO channels.permissions_%d (client, permission, status)
                     VALUES (?, ?, ?)
                 """, channel_id));
-            stmt.setInt(1, owner);
+            stmt.setLong(1, owner);
             stmt.setInt(2, 0);
             stmt.setBoolean(2, true);
             stmt.executeUpdate();
@@ -105,7 +105,7 @@ public class DataOperator extends DBOperator {
         return channel_id;
     }
 
-    public static void addUserToChannel (int channel, int user) {
+    public static void addUserToChannel (long channel, long user) {
         PreparedStatement stmt;
 
         try {
@@ -114,13 +114,13 @@ public class DataOperator extends DBOperator {
                 INSERT INTO channels.users_%d (id, join)
                 VALUES (?, ?)
             """, channel));
-            stmt.setInt(1, user);
+            stmt.setLong(1, user);
             stmt.setTimestamp(2, Timestamp.from(Instant.now()));
 
             stmt.executeUpdate();
         } catch (SQLException ignored) {}
     }
-    public static void removeUserFromChannel (int channel, int user) {
+    public static void removeUserFromChannel (long channel, long user) {
         PreparedStatement stmt;
 
         try {
