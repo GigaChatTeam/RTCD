@@ -3,7 +3,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PermissionOperator extends DBOperator {
-    public static boolean validateToken (int id, String user_token) {
+    public static boolean validateToken (long id, String user_token) {
         String sql = """
             SELECT token
             FROM public.tokens
@@ -14,7 +14,7 @@ public class PermissionOperator extends DBOperator {
 
         try {
             stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
 
             ResultSet rs = stmt.executeQuery();
 

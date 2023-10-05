@@ -34,7 +34,7 @@ public class Helper {
             this.preData = data;
         }
 
-        public void parseData (Class pattern) {
+        public void parseData (Class<?> pattern) {
             postData = JsonIterator.deserialize(preData, pattern);
         }
     }

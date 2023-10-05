@@ -14,6 +14,11 @@ public class SystemResponses {
             entry("target", "message"),
             entry("status", "permission denied")
         );
+        public static Map<String, String> NOT_VALID_INTENTIONS = Map.ofEntries(
+            entry("type", "system"),
+            entry("target", "message"),
+            entry("status", "permission denied")
+        );
     }
     public static class Confirmations {
         public static Map<String, String> CONNECTION_READY = Map.ofEntries(

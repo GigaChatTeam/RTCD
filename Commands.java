@@ -13,16 +13,15 @@ public enum Commands {
     USER_CHANNELS_MESSAGES_EDIT(new String[]{"USER", "CHANNELS", "MESSAGES", "EDIT"}, null),
     USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, null);
 
-
     private final String[] intents;
     final Class pattern;
 
-    private Commands(String[] intents, Class pattern) {
+    private Commands (String[] intents, Class pattern) {
         this.intents = intents;
         this.pattern = pattern;
     }
 
-    public static Commands byIntents(String[] intents) {
+    public static Commands byIntents (String[] intents) {
         return Arrays.stream(Commands.values())
             .filter(v -> Arrays.equals(v.intents, intents))
             .findFirst()
