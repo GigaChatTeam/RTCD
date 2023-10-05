@@ -1,6 +1,7 @@
 import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Client {
     protected final WebSocket socket;
@@ -13,6 +14,10 @@ public class Client {
         this.socket = sock;
         this.id = id;
         this.token = token;
+    }
+
+    public boolean verifyToken(String token) {
+        return Objects.equals(token, this.token);
     }
 
     public void addListen (long channel) {
