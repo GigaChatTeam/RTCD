@@ -3,6 +3,7 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 
@@ -23,13 +24,15 @@ class WSCore extends WebSocketServer {
     @Override
     public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
         System.out.println(clientHandshake.getResourceDescriptor()); // Debug
-        Helper.ConnectionPath connectParams = Helper.parseURI(clientHandshake.getResourceDescriptor());
 
-        if (connectParams == null) {
+        Helper.ConnectionPath connectParams;
+
+        try {
+            connectParams = Helper.parseURI(clientHandshake.getResourceDescriptor());
+        } catch (Helper.InvalidURIException e) {
             webSocket.close(406, "InsufficientData");
             return;
         }
-
 
         if (connectParams.params.get("id") != null && connectParams.params.get("token") != null) {
             if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
@@ -63,7 +66,7 @@ class WSCore extends WebSocketServer {
         }
 
         switch (cmd) {
-            case ADMIN_CHANNELS_CREATE, ADMIN_CHANNELS_USERS_JOIN -> {
+            case ADMIN_CHANNELS_CREATE -> {
                 break;
             }
             case USER_CHANNELS_MESSAGES_POST_NEW -> {

@@ -2,7 +2,6 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.jsoniter.JsonIterator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Helper {
+    public static class InvalidURIException extends Exception {    }
+
     public static class ConnectionPath {
         String[] pathParts;
         Map<String, String> params;
@@ -40,10 +41,10 @@ public class Helper {
     }
 
     @Contract("_ -> new")
-    public static @Nullable ConnectionPath parseURI (@NotNull String uri) {
+    public static @NotNull ConnectionPath parseURI (@NotNull String uri) throws InvalidURIException {
         int index = uri.indexOf('?');
         if (index == -1) {
-            return null;
+            throw new InvalidURIException();
         }
 
         String path = uri.substring(0, index);
@@ -65,7 +66,14 @@ public class Helper {
     public static @NotNull MessagePacket parsePacket (@NotNull String packet) {
         String[] splitPacket = packet.split("%");
 
-        return new MessagePacket(splitPacket[0].split("-"), splitPacket[1], splitPacket[2]);
+        MessagePacket result = new MessagePacket(splitPacket[0].split("-"), splitPacket[1], splitPacket[2]);
+
+        try {
+            return result;
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            return null;
+        }
     }
 
     public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {

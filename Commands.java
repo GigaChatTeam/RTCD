@@ -11,12 +11,14 @@ public enum Commands {
     USER_CHANNELS_MESSAGES_POST_NEW(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "NEW"}, DataCommands.ChannelMessagesPostNew.class),
     USER_CHANNELS_MESSAGES_POST_FORWARD(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "FORWARD"}, null),
     USER_CHANNELS_MESSAGES_EDIT(new String[]{"USER", "CHANNELS", "MESSAGES", "EDIT"}, null),
-    USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, null);
+    USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, null),
+
+    USER_CHANNELS_MESSAGES_REACTIONS_ADD(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "ADD"}, null);
 
     private final String[] intents;
-    final Class pattern;
+    final Class<?> pattern;
 
-    private Commands (String[] intents, Class pattern) {
+    Commands(String[] intents, Class<?> pattern) {
         this.intents = intents;
         this.pattern = pattern;
     }
