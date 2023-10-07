@@ -39,6 +39,7 @@ public class CommandsPatterns {
             }
             static class Delete {
                 long admin = -1L;
+                long author;
                 long message;
             }
         }
@@ -85,11 +86,16 @@ public class CommandsPatterns {
 
         static class Edit {
             static class Visual {
-
+                long admin;
+                String key;
+                String value;
             }
 
             static class Permissions {
-
+                long admin;
+                long user = 1;
+                short[] permission;
+                Boolean value = null;
             }
 
             static class System {
@@ -98,7 +104,8 @@ public class CommandsPatterns {
         }
 
         static class Delete {
-
+            long owner;
+            long channel;
         }
     }
 }

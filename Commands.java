@@ -12,10 +12,11 @@ public enum Commands {
     USER_CHANNELS_MESSAGES_POST_NEW(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "NEW"}, CommandsPatterns.Channels.Messages.Post.New.class),
     USER_CHANNELS_MESSAGES_POST_FORWARD_MESSAGE(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "FORWARD", "MESSAGE"}, CommandsPatterns.Channels.Messages.Post.ForwardMessage.class),
     USER_CHANNELS_MESSAGES_POST_FORWARD_POST(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "FORWARD", "POST"}, CommandsPatterns.Channels.Messages.Post.ForwardPost.class),
-    USER_CHANNELS_MESSAGES_EDIT(new String[]{"USER", "CHANNELS", "MESSAGES", "EDIT"}, CommandsPatterns.Channels.Messages.Edit.class),
+    USER_CHANNELS_MESSAGES_EDIT(new String[]{"USER", "CHANNELS", "MESSAGES", "EDIT"}, CommandsPatterns.Channels.Messages.Edit.Text.class),
     USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, CommandsPatterns.Channels.Messages.Delete.class),
 
-    USER_CHANNELS_MESSAGES_REACTIONS_ADD(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "ADD"}, CommandsPatterns.Channels.Reactions.Add.class);
+    USER_CHANNELS_MESSAGES_REACTIONS_ADD(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "ADD"}, CommandsPatterns.Channels.Reactions.Add.class),
+    USER_CHANNELS_MESSAGES_REACTIONS_REMOVE(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "REMOVE"}, CommandsPatterns.Channels.Reactions.Remove.class);
 
     private final String[] intents;
     final Class<?> pattern;
