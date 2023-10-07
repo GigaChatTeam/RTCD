@@ -70,7 +70,7 @@ class WSCore extends WebSocketServer {
                 break;
             }
             case USER_CHANNELS_MESSAGES_POST_NEW -> {
-                if (!clientIDVerifier(webSocket, ((DataCommands.ChannelMessagesPostNew) packet.postData).author)) {
+                if (!clientIDVerifier(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author)) {
                     webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
                 }
                 break;
