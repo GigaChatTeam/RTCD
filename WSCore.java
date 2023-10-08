@@ -38,8 +38,7 @@ class WSCore extends WebSocketServer {
             if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
                 clients.addClient(new Client(webSocket, Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token")));
 
-                String response = JsonStream.serialize(SystemResponses.Confirmations.CONNECTION_READY);
-                webSocket.send("CONNECTION%" + Helper.SHA512(response) + "%" + response);
+                webSocket.send("CONNECTION%" + Helper.SHA512(SystemResponses.Confirmations.CONNECTION_READY) + "%" + SystemResponses.Confirmations.CONNECTION_READY);
 
                 clients.changeStatus(webSocket, true);
             } else webSocket.close(401, "InvalidAuthorizationData");
@@ -64,7 +63,7 @@ class WSCore extends WebSocketServer {
         try {
             packet.parseData(cmd.pattern);
         } catch (NullPointerException _) {
-            webSocket.send(JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS));
+            webSocket.send(SystemResponses.Errors.NOT_VALID_INTENTIONS);
             return;
         }
 
@@ -74,11 +73,11 @@ class WSCore extends WebSocketServer {
             }
             case USER_CHANNELS_MESSAGES_POST_NEW -> {
                 if (!clientIDVerifier(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author)) {
-                    webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
+                    webSocket.send(SystemResponses.Errors.PERMISSION_DENIED);
                 }
                 break;
             }
-            default -> webSocket.send(JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED));
+            default -> webSocket.send(SystemResponses.Errors.MESSAGE_DAMAGED);
         }
     }
 

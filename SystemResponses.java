@@ -1,30 +1,32 @@
+import com.jsoniter.output.JsonStream;
+
 import java.util.Map;
 
 import static java.util.Map.entry;
 
 public class SystemResponses {
     public static class Errors {
-        public static Map<String, String> MESSAGE_DAMAGED = Map.ofEntries(
+        public static String MESSAGE_DAMAGED = JsonStream.serialize(Map.ofEntries(
             entry("type", "system"),
             entry("target", "message"),
             entry("status", "damaged")
-        );
-        public static Map<String, String> PERMISSION_DENIED = Map.ofEntries(
+        ));
+        public static String PERMISSION_DENIED = JsonStream.serialize(Map.ofEntries(
             entry("type", "system"),
             entry("target", "message"),
             entry("status", "permission denied")
-        );
-        public static Map<String, String> NOT_VALID_INTENTIONS = Map.ofEntries(
+        ));
+        public static String NOT_VALID_INTENTIONS = JsonStream.serialize(Map.ofEntries(
             entry("type", "system"),
             entry("target", "message"),
             entry("status", "permission denied")
-        );
+        ));
     }
     public static class Confirmations {
-        public static Map<String, String> CONNECTION_READY = Map.ofEntries(
+        public static String CONNECTION_READY = JsonStream.serialize(Map.ofEntries(
             entry("type", "system"),
             entry("target", "connection"),
             entry("status", "connected")
-        );
+        ));
     }
 }
