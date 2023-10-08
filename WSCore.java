@@ -52,8 +52,11 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        System.out.println(message); // DEBUG
-        clients.sendAll(message); // DEBUG
+        if (Starter.DEBUG == 2) {
+            System.out.println(message); // DEBUG
+            clients.sendAll(message); // DEBUG
+            return;
+        }
 
         Helper.MessagePacket packet = Helper.parsePacket(message);
         Commands cmd = Commands.byIntents(packet.intention);
