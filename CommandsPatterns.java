@@ -1,6 +1,18 @@
 import java.util.Map;
 
 public class CommandsPatterns {
+    static class Systems {
+        static class Listen {
+            static class Add {
+                long client;
+                long channel;
+            }
+            static class Remove {
+                long client;
+                long channel;
+            }
+        }
+    }
     static class Channels {
         static class Messages {
             static class Post {

@@ -16,8 +16,21 @@ class Clients {
                 .forEach(c -> c.send(data));
     }
 
-    public Boolean userIsConnected(long channel) {
-        return null;
+    public boolean isUserInChannel (long client, long channel) {
+        return clients.values().parallelStream()
+                .filter(c -> c.getChannels().contains(channel))
+                .anyMatch(c -> c.id == client);
+    }
+    public boolean isUserInChannel (WebSocket webSocket, long channel) {
+        return clients.values().parallelStream()
+                .anyMatch(c -> c.getChannels().contains(channel));
+    }
+
+    public boolean isUserConnected (WebSocket webSocket) {
+        return true;
+    }
+    public boolean isUserConnected (long client, long channel) {
+        return true;
     }
 
     public void addClient (Client client) {
@@ -31,26 +44,39 @@ class Clients {
         clients.remove(socket);
     }
 
-    public void joinClientToChannel (WebSocket socket, long channel) {
+    public void addListeningClientToChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
-                .forEach(c -> c.addListen(channel));
+                .forEach(c -> c.addListenChannel(channel));
     }
-    public void LeaveClientFromChannel (WebSocket socket, long channel) {
+    public void addListeningClientToChannel (long client, long channel) {
+        clients.values().parallelStream()
+                .filter(c -> c.id == client)
+                .forEach(c -> c.addListenChannel(channel));
+    }
+    public void removeListeningClientToChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
-                .forEach(c -> c.removeListen(channel));
+                .forEach(c -> c.removeListenChannel(channel));
+    }
+    public void removeListeningClientFromChannel (long client, long channel) {
+        clients.values().parallelStream()
+                .filter(c -> c.id == client)
+                .forEach(c -> c.removeListenChannel(channel));
     }
 
     public long getID (WebSocket webSocket) {
-        for (Client client : clients.values()) if (client.socket == webSocket) return client.id;
-        return -1;
+        return clients.values().parallelStream()
+            .filter(client -> client.socket == webSocket)
+            .map(client -> client.id)
+            .findFirst()
+            .orElse(-1L);
     }
 
-    public void changeStatus (WebSocket webSocket, boolean status) {
+    public void changeClientConnectionStatus (WebSocket webSocket, boolean status) {
         clients.get(webSocket).status = status;
     }
-    public boolean getStatus (WebSocket webSocket) {
+    public boolean getClientConnectionStatus (WebSocket webSocket) {
         return clients.get(webSocket).status;
     }
 }

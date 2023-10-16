@@ -16,7 +16,10 @@ public enum Commands {
     USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, CommandsPatterns.Channels.Messages.Delete.class),
 
     USER_CHANNELS_MESSAGES_REACTIONS_ADD(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "ADD"}, CommandsPatterns.Channels.Reactions.Add.class),
-    USER_CHANNELS_MESSAGES_REACTIONS_REMOVE(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "REMOVE"}, CommandsPatterns.Channels.Reactions.Remove.class);
+    USER_CHANNELS_MESSAGES_REACTIONS_REMOVE(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "REMOVE"}, CommandsPatterns.Channels.Reactions.Remove.class),
+
+    SYSTEM_CHANNELS_LISTEN_ADD(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "ADD"}, CommandsPatterns.Systems.Listen.Add.class),
+    SYSTEM_CHANNELS_LISTEN_REMOVE(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "REMOVE"}, CommandsPatterns.Systems.Listen.Remove.class);
 
     private final String[] intents;
     final Class<?> pattern;
