@@ -7,7 +7,7 @@ public enum Commands {
     ADMIN_CHANNELS_USERS_REMOVE(new String[]{"ADMIN", "CHANNELS", "USERS", "REMOVE"}, CommandsPatterns.Channels.Users.Remove.class),
 
     USER_CHANNELS_JOIN(new String[]{"USER", "CHANNELS", "JOIN"}, CommandsPatterns.Channels.Users.Join.class),
-    USER_CHANNELS_LEAVE(new String[]{"USER", "CHANNELS", "JOIN"}, CommandsPatterns.Channels.Users.Leave.class),
+    USER_CHANNELS_LEAVE(new String[]{"USER", "CHANNELS", "LEAVE"}, CommandsPatterns.Channels.Users.Leave.class),
 
     USER_CHANNELS_MESSAGES_POST_NEW(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "NEW"}, CommandsPatterns.Channels.Messages.Post.New.class),
     USER_CHANNELS_MESSAGES_POST_FORWARD_MESSAGE(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "FORWARD", "MESSAGE"}, CommandsPatterns.Channels.Messages.Post.ForwardMessage.class),

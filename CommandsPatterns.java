@@ -1,3 +1,5 @@
+import com.jsoniter.annotation.JsonObject;
+
 import java.util.Map;
 
 public class CommandsPatterns {
@@ -21,7 +23,6 @@ public class CommandsPatterns {
                     long channel;
                     String text;
                 }
-
                 static class ForwardMessage {
                     long author;
                     long channel;
@@ -39,10 +40,9 @@ public class CommandsPatterns {
                     static class Reorganize {
                         long author;
                         long message;
-                        Map<Long, Byte[]> layout;
+                        Map<Long, byte[]> layout;
                     }
                 }
-
                 static class Text {
                     long message;
                     long author;
