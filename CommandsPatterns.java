@@ -1,5 +1,3 @@
-import com.jsoniter.annotation.JsonObject;
-
 import java.util.Map;
 
 public class CommandsPatterns {

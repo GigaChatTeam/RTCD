@@ -48,7 +48,7 @@ class WSCore extends WebSocketServer {
     @Override
     public void onMessage (WebSocket webSocket, String message) {
         if (!clients.getClientConnectionStatus(webSocket)) {
-            webSocket.send(STR. "CONNECTION%\{ JsonStream.serialize(SystemResponses.Errors.NOT_AUTHORIZED) }" );
+            webSocket.send(STR. "CONNECTION%MISS%\{ JsonStream.serialize(SystemResponses.Errors.NOT_AUTHORIZED) }" );
             return;
         }
 
@@ -65,12 +65,12 @@ class WSCore extends WebSocketServer {
             packet.parseData(cmd.pattern);
         } catch (NullPointerException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
-            webSocket.send(STR. "SYSTEM%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS) }" );
+            webSocket.send(STR. "SYSTEM%MISS%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS) }" );
             return;
         }
 
         if (!clientIDVerifier(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author)) {
-            webSocket.send(STR. "SYSTEM%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_ID) }" );
+            webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_ID) }" );
             return;
         }
 
@@ -83,12 +83,15 @@ class WSCore extends WebSocketServer {
 
                     clients.addListeningClientToChannel(webSocket, channel_id);
                     clients.sendCommandToChannel(channel_id,
-                            STR. "MESSAGE%\{ JsonStream.serialize(
+                            STR. "\{ String.join("-", packet.intention) }%\{ packet.hash }%\{ JsonStream.serialize(
                                     new ResponsesPatterns.Channels.Create((CommandsPatterns.Channels.Create) packet.postData, channel_id)) }" );
+                }
+                case ADMIN_CHANNELS_DELETE -> {
+
                 }
                 case USER_CHANNELS_MESSAGES_POST_NEW -> {
                     if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel)) {
-                        webSocket.send(STR. "SYSTEM%\{ JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED) }" );
+                        webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED) }" );
                         return;
                     }
 
@@ -98,10 +101,9 @@ class WSCore extends WebSocketServer {
                             ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text);
 
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            STR. "MESSAGE%\{ JsonStream.serialize(
+                            STR. "\{ String.join("-", packet.intention) }%\{ packet.hash }%\{ JsonStream.serialize(
                                     new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData, message_id)) }" );
                 }
-
                 case SYSTEM_CHANNELS_LISTEN_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
@@ -113,7 +115,7 @@ class WSCore extends WebSocketServer {
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
                 }
                 default ->
-                        webSocket.send(STR. "SYSTEM%\{ JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED) }" );
+                        webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED) }" );
             }
         } catch (SQLException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
