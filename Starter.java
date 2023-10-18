@@ -1,5 +1,5 @@
 public class Starter {
-    static int DEBUG = 1;
+    static byte DEBUG = 2;
 
     public static void main (String[] args) {
         int port = 8080;

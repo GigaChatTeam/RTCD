@@ -7,7 +7,7 @@ public class Client {
     protected final WebSocket socket;
     public final long id;
     private final String token;
-    boolean status = false;
+    public boolean status = false;
     private ArrayList<Long> channels;
 
     public Client (WebSocket sock, long id, String token) {
@@ -20,12 +20,12 @@ public class Client {
         return Objects.equals(token, this.token);
     }
 
-    public void addListen (long channel) {
+    public void addListenChannel (long channel) {
         if (!channels.contains(channel)) {
             channels.add(channel);
         }
     }
-    public void removeListen (long channel) {
+    public void removeListenChannel (long channel) {
         channels.remove(channel);
     }
 

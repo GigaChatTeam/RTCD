@@ -1,6 +1,18 @@
 import java.util.Map;
 
 public class CommandsPatterns {
+    static class Systems {
+        static class Listen {
+            static class Add {
+                long client;
+                long channel;
+            }
+            static class Remove {
+                long client;
+                long channel;
+            }
+        }
+    }
     static class Channels {
         static class Messages {
             static class Post {
@@ -9,7 +21,6 @@ public class CommandsPatterns {
                     long channel;
                     String text;
                 }
-
                 static class ForwardMessage {
                     long author;
                     long channel;
@@ -27,10 +38,9 @@ public class CommandsPatterns {
                     static class Reorganize {
                         long author;
                         long message;
-                        Map<Long, Byte[]> layout;
+                        Map<Long, byte[]> layout;
                     }
                 }
-
                 static class Text {
                     long message;
                     long author;

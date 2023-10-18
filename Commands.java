@@ -7,7 +7,7 @@ public enum Commands {
     ADMIN_CHANNELS_USERS_REMOVE(new String[]{"ADMIN", "CHANNELS", "USERS", "REMOVE"}, CommandsPatterns.Channels.Users.Remove.class),
 
     USER_CHANNELS_JOIN(new String[]{"USER", "CHANNELS", "JOIN"}, CommandsPatterns.Channels.Users.Join.class),
-    USER_CHANNELS_LEAVE(new String[]{"USER", "CHANNELS", "JOIN"}, CommandsPatterns.Channels.Users.Leave.class),
+    USER_CHANNELS_LEAVE(new String[]{"USER", "CHANNELS", "LEAVE"}, CommandsPatterns.Channels.Users.Leave.class),
 
     USER_CHANNELS_MESSAGES_POST_NEW(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "NEW"}, CommandsPatterns.Channels.Messages.Post.New.class),
     USER_CHANNELS_MESSAGES_POST_FORWARD_MESSAGE(new String[]{"USER", "CHANNELS", "MESSAGES", "POST", "FORWARD", "MESSAGE"}, CommandsPatterns.Channels.Messages.Post.ForwardMessage.class),
@@ -16,7 +16,10 @@ public enum Commands {
     USER_CHANNELS_MESSAGES_DELETE(new String[]{"USER", "CHANNELS", "MESSAGES", "DELETE"}, CommandsPatterns.Channels.Messages.Delete.class),
 
     USER_CHANNELS_MESSAGES_REACTIONS_ADD(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "ADD"}, CommandsPatterns.Channels.Reactions.Add.class),
-    USER_CHANNELS_MESSAGES_REACTIONS_REMOVE(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "REMOVE"}, CommandsPatterns.Channels.Reactions.Remove.class);
+    USER_CHANNELS_MESSAGES_REACTIONS_REMOVE(new String[]{"USER", "CHANNELS", "MESSAGES", "REACTIONS", "REMOVE"}, CommandsPatterns.Channels.Reactions.Remove.class),
+
+    SYSTEM_CHANNELS_LISTEN_ADD(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "ADD"}, CommandsPatterns.Systems.Listen.Add.class),
+    SYSTEM_CHANNELS_LISTEN_REMOVE(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "REMOVE"}, CommandsPatterns.Systems.Listen.Remove.class);
 
     private final String[] intents;
     final Class<?> pattern;
