@@ -1,4 +1,9 @@
 <project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.gct.server.rtcd</groupId>
+    <artifactId>gigachatteam-rtcd</artifactId>
+    <version>0.1</version>
     <properties>
         <sonar.organization>gigachatteam</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
