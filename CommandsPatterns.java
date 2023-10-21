@@ -1,3 +1,6 @@
+import com.jsoniter.annotation.JsonProperty;
+
+import java.sql.Timestamp;
 import java.util.Map;
 
 public class CommandsPatterns {
@@ -7,12 +10,14 @@ public class CommandsPatterns {
                 long client;
                 long channel;
             }
+
             static class Remove {
                 long client;
                 long channel;
             }
         }
     }
+
     static class Channels {
         static class Messages {
             static class Post {
@@ -21,18 +26,32 @@ public class CommandsPatterns {
                     long channel;
                     String text;
                 }
+
                 static class ForwardMessage {
+                    protected static class SourceMessage {
+                        long channel;
+                        Timestamp posted;
+                    }
+
                     long author;
                     long channel;
-                    long original_message;
+                    @JsonProperty("source")
+                    SourceMessage original_message;
                 }
+
                 static class ForwardPost {
+                    protected static class SourcePost {
+                        long channel;
+                        Timestamp posted;
+                    }
+
                     long author;
                     long channel;
                     long original_community;
                     long original_post;
                 }
             }
+
             static class Edit {
                 static class Attachments {
                     static class Reorganize {
@@ -41,12 +60,14 @@ public class CommandsPatterns {
                         Map<Long, byte[]> layout;
                     }
                 }
+
                 static class Text {
                     long message;
                     long author;
                     String new_text;
                 }
             }
+
             static class Delete {
                 long admin = -1L;
                 long author;
@@ -60,6 +81,7 @@ public class CommandsPatterns {
                 long message;
                 String[] reaction;
             }
+
             static class Remove {
                 long author;
                 long message;
@@ -72,6 +94,7 @@ public class CommandsPatterns {
                 long channel;
                 String invitation;
             }
+
             static class Leave {
                 long user;
                 long channel;
@@ -82,6 +105,7 @@ public class CommandsPatterns {
                 long user;
                 long channel;
             }
+
             static class Remove {
                 long admin;
                 long user;

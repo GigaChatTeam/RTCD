@@ -21,10 +21,10 @@ public enum Commands {
     SYSTEM_CHANNELS_LISTEN_ADD(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "ADD"}, CommandsPatterns.Systems.Listen.Add.class),
     SYSTEM_CHANNELS_LISTEN_REMOVE(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "REMOVE"}, CommandsPatterns.Systems.Listen.Remove.class);
 
-    private final String[] intents;
+    final String[] intents;
     final Class<?> pattern;
 
-    Commands(String[] intents, Class<?> pattern) {
+    Commands (String[] intents, Class<?> pattern) {
         this.intents = intents;
         this.pattern = pattern;
     }

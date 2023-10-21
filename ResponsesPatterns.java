@@ -1,37 +1,69 @@
-import org.jetbrains.annotations.Contract;
+import com.jsoniter.annotation.JsonIgnore;
+import com.jsoniter.output.JsonStream;
 import org.jetbrains.annotations.NotNull;
+
+import java.sql.Timestamp;
+
+import static java.lang.String.join;
 
 public class ResponsesPatterns {
     static class Channels {
         static class Messages {
             static class Post {
                 static class New {
+                    static final String[] intention = Commands.USER_CHANNELS_MESSAGES_POST_NEW.intents;
+
                     long author;
                     long channel;
+                    String type = "TEXT MESSAGE";
                     String text;
-                    long id;
+                    String posted;
 
-                    @Contract(pure = true)
-                    New (CommandsPatterns.Channels.Messages.Post.@NotNull New command, long id) {
+                    New (CommandsPatterns.Channels.Messages.Post.@NotNull New command, Timestamp posted) {
                         this.author = command.author;
                         this.channel = command.channel;
                         this.text = command.text;
-                        this.id = id;
+                        this.posted = Helper.Constants.timestamp.format(posted);
+                    }
+
+                    New (long author, long channel, String text, Timestamp posted) {
+                        this.author = author;
+                        this.channel = channel;
+                        this.text = text;
+                        this.posted = Helper.Constants.timestamp.format(posted);
+                    }
+
+                    New (long author, long channel, String type, String text, Timestamp posted) {
+                        this.author = author;
+                        this.channel = channel;
+                        this.type = type;
+                        this.text = text;
+                        this.posted = Helper.Constants.timestamp.format(posted);
+                    }
+
+                    String serialize (String hash) {
+                        return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
                     }
                 }
             }
         }
 
         static class Create {
+            @JsonIgnore
+            static final String[] intention = Commands.ADMIN_CHANNELS_CREATE.intents;
+
             long owner;
             String title;
             long id;
 
-            @Contract(pure = true)
             Create (CommandsPatterns.Channels.@NotNull Create command, long id) {
                 this.owner = command.owner;
                 this.title = command.title;
                 this.id = id;
+            }
+
+            String serialize (String hash) {
+                return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
             }
         }
     }

@@ -3,10 +3,10 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 
 class WSCore extends WebSocketServer {
@@ -49,7 +49,7 @@ class WSCore extends WebSocketServer {
     @Override
     public void onMessage (WebSocket webSocket, String message) {
         if (!clients.getClientConnectionStatus(webSocket)) {
-            webSocket.send(STR. "CONNECTION%MISS%\{ JsonStream.serialize(SystemResponses.Errors.NOT_AUTHORIZED) }" );
+            webSocket.send(SystemResponses.Errors.Systems.NOT_AUTHORIZED());
             return;
         }
 
@@ -66,44 +66,30 @@ class WSCore extends WebSocketServer {
             packet.parseData(cmd.pattern);
         } catch (NullPointerException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
-            webSocket.send(STR. "SYSTEM%MISS%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_INTENTIONS) }" );
+            webSocket.send(STR. "SYSTEM%MISS%\{ JsonStream.serialize(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS()) }" );
             return;
         }
 
         if (!clientIDVerifier(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author)) {
-            webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.NOT_VALID_ID) }" );
+            webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.Systems.NOT_VALID_ID()) }" );
             return;
         }
 
         try {
             switch (cmd) {
-                case ADMIN_CHANNELS_CREATE -> {
-                    long channel_id = ChannelsExecutor.create(
-                            ((CommandsPatterns.Channels.Create) packet.postData).owner,
-                            ((CommandsPatterns.Channels.Create) packet.postData).title);
-
-                    clients.addListeningClientToChannel(webSocket, channel_id);
-                    clients.sendCommandToChannel(channel_id,
-                            STR. "\{ String.join("-", packet.intention) }%\{ packet.hash }%\{ JsonStream.serialize(
-                                    new ResponsesPatterns.Channels.Create((CommandsPatterns.Channels.Create) packet.postData, channel_id)) }" );
-                }
-                case ADMIN_CHANNELS_DELETE -> {
-
-                }
                 case USER_CHANNELS_MESSAGES_POST_NEW -> {
                     if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel)) {
-                        webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED) }" );
+                        webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
                         return;
                     }
 
-                    long message_id = ChannelsExecutor.Messages.postMessage(
+                    Timestamp posted = ChannelsExecutor.Messages.postMessage(
                             ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
                             ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
                             ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text);
 
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            STR. "\{ String.join("-", packet.intention) }%\{ packet.hash }%\{ JsonStream.serialize(
-                                    new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData, message_id)) }" );
+                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData, posted).serialize(packet.hash));
                 }
                 case SYSTEM_CHANNELS_LISTEN_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
@@ -115,15 +101,19 @@ class WSCore extends WebSocketServer {
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
                 }
-                default ->
-                        webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.MESSAGE_DAMAGED) }" );
+                case SYSTEM_CHANNELS_LISTEN_REMOVE -> {
+                    clients.removeListeningClientFromChannel(
+                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
+                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
+                }
+                default -> webSocket.send(SystemResponses.Errors.Users.SERVER_ERROR(packet.hash));
             }
         } catch (SQLException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
-            webSocket.send(JsonStream.serialize(SystemResponses.Errors.SERVER_ERROR));
+            webSocket.send(SystemResponses.Errors.Users.SERVER_ERROR(packet.hash));
         } catch (AccessDenied e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
-            webSocket.send(JsonStream.serialize(SystemResponses.Errors.PERMISSION_DENIED));
+            webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
         }
     }
 

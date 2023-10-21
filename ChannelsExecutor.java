@@ -3,6 +3,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 public class ChannelsExecutor extends DBOperator {
     static long create (long owner, String title) throws SQLException {
@@ -27,7 +28,7 @@ public class ChannelsExecutor extends DBOperator {
             static boolean isClientOnChannel (long client, long channel) throws SQLException {
                 String sql = """
                     SELECT EXISTS (
-                        SELECT true
+                        SELECT *
                         FROM channels.users
                         WHERE
                             client = ? AND
@@ -86,7 +87,7 @@ public class ChannelsExecutor extends DBOperator {
         }
     }
     static class Invitations {
-        static @NotNull String create(long user, long channel) throws SQLException, AccessDenied {
+        static @NotNull String create (long user, long channel) throws SQLException, AccessDenied {
             String sql = """
                 SELECT channels.create_invitation(?, ?)
             """;
@@ -105,16 +106,13 @@ public class ChannelsExecutor extends DBOperator {
             if (uri != null) return uri;
             else throw new AccessDenied();
         }
-//        void create (long user, long channel, String uri) throws SQLException, AccessDenied {
-//
-//        }
-static void delete(long user, String uri) throws SQLException, AccessDenied {
+        static void delete (long user, String uri) throws SQLException, AccessDenied {
 
-}
+        }
     }
 
     static class Messages {
-        static long postMessage (long author, long channel, String text) throws SQLException {
+        static Timestamp postMessage (long author, long channel, String text) throws SQLException {
             String sql = """
                 SELECT channels.post_message(?, ?, ?)
             """;
@@ -129,7 +127,7 @@ static void delete(long user, String uri) throws SQLException, AccessDenied {
 
             rs.next();
 
-            return rs.getLong(1);
+            return rs.getTimestamp(1);
         }
     }
 }
