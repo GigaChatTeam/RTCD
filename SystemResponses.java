@@ -5,36 +5,71 @@ import java.util.Map;
 import static java.util.Map.entry;
 
 public class SystemResponses {
-    public static class Errors {
-        public static String MESSAGE_DAMAGED = JsonStream.serialize(Map.ofEntries(
-            entry("target", "system"),
-            entry("status", "damaged")
-        ));
-        public static String PERMISSION_DENIED = JsonStream.serialize(Map.ofEntries(
-            entry("target", "command"),
-            entry("status", "permission denied")
-        ));
-        public static String NOT_VALID_INTENTIONS = JsonStream.serialize(Map.ofEntries(
-            entry("target", "command"),
-            entry("status", "not valid intentions")
-        ));
-        public static String SERVER_ERROR = JsonStream.serialize(Map.ofEntries(
-            entry("target", "system"),
-            entry("status", "server error")
-        ));
-        public static String NOT_AUTHORIZED = JsonStream.serialize(Map.ofEntries(
-            entry("target", "system"),
-            entry("status", "not authorized")
-        ));
-        public static String NOT_VALID_ID = JsonStream.serialize(Map.ofEntries(
-            entry("target", "system"),
-            entry("status", "not valid id")
-        ));
+    static class Errors {
+        private static class Bodies {
+            public static String MESSAGE_DAMAGED = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "damaged")
+            ));
+            public static String PERMISSION_DENIED = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "command"),
+                    entry("status", "permission denied")
+            ));
+            public static String NOT_VALID_INTENTIONS = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "command"),
+                    entry("status", "not valid intentions")
+            ));
+            public static String SERVER_ERROR = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "server error")
+            ));
+            public static String NOT_AUTHORIZED = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "not authorized")
+            ));
+            public static String NOT_VALID_ID = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "not valid id")
+            ));
+        }
+
+        static class Users {
+            static String MESSAGE_DAMAGED (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.MESSAGE_DAMAGED }" ;
+            }
+
+            static String PERMISSION_DENIED (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.PERMISSION_DENIED }" ;
+            }
+
+            static String SERVER_ERROR (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.SERVER_ERROR }" ;
+            }
+
+            static String NOT_AUTHORIZED (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_AUTHORIZED }" ;
+            }
+        }
+
+        static class Systems {
+            static String NOT_AUTHORIZED () {
+                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_AUTHORIZED }" ;
+            }
+
+            static String NOT_VALID_INTENTIONS () {
+                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_VALID_INTENTIONS }" ;
+            }
+
+            static String NOT_VALID_ID () {
+                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_VALID_ID }" ;
+            }
+        }
     }
+
     public static class Confirmations {
         public static String CONNECTION_READY = JsonStream.serialize(Map.ofEntries(
-            entry("target", "connection"),
-            entry("status", "connected")
+                entry("target", "connection"),
+                entry("status", "connected")
         ));
     }
 }
