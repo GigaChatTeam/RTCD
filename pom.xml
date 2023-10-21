@@ -1,4 +1,6 @@
-<properties>
-  <sonar.organization>gigachatteam</sonar.organization>
-  <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-</properties>
+<project>
+    <properties>
+        <sonar.organization>gigachatteam</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    </properties>
+</project>
