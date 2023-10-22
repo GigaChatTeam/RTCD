@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.ParseException;
 
 
 class WSCore extends WebSocketServer {
@@ -101,12 +102,21 @@ class WSCore extends WebSocketServer {
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
                             ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
                 }
-                case SYSTEM_CHANNELS_LISTEN_REMOVE -> {
-                    clients.removeListeningClientFromChannel(
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
+                case SYSTEM_CHANNELS_LISTEN_REMOVE -> clients.removeListeningClientFromChannel(
+                        ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
+                        ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
+                case USER_CHANNELS_MESSAGES_EDIT -> {
+                    if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel)) {
+                        webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
+                        return;
+                    }
+
+                    ChannelsExecutor.Messages.editMessage((CommandsPatterns.Channels.Messages.Edit) packet.postData);
+
+                    clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel,
+                            new ResponsesPatterns.Channels.Messages.Edit((CommandsPatterns.Channels.Messages.Edit) packet.postData).serialize(packet.hash));
                 }
-                default -> webSocket.send(SystemResponses.Errors.Users.SERVER_ERROR(packet.hash));
+                default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
@@ -114,6 +124,9 @@ class WSCore extends WebSocketServer {
         } catch (AccessDenied e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
             webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
+        } catch (ParseException e) {
+            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            webSocket.send(SystemResponses.Errors.Users.MESSAGE_DAMAGED(packet.hash));
         }
     }
 

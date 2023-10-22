@@ -4,12 +4,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
 
 public class ChannelsExecutor extends DBOperator {
     static long create (long owner, String title) throws SQLException {
         String sql = """
-            SELECT channels.create(?, ?)
-        """;
+                    SELECT channels.create(?, ?)
+                """;
         PreparedStatement stmt;
 
         stmt = conn.prepareStatement(sql);
@@ -27,15 +28,15 @@ public class ChannelsExecutor extends DBOperator {
         static class Permissions {
             static boolean isClientOnChannel (long client, long channel) throws SQLException {
                 String sql = """
-                    SELECT EXISTS (
-                        SELECT *
-                        FROM channels.users
-                        WHERE
-                            client = ? AND
-                            channel = ? AND
-                            leaved IS NULL
-                    )
-                """;
+                            SELECT EXISTS (
+                                SELECT *
+                                FROM channels.users
+                                WHERE
+                                    client = ? AND
+                                    channel = ? AND
+                                    leaved IS NULL
+                            )
+                        """;
                 PreparedStatement stmt;
 
                 stmt = conn.prepareStatement(sql);
@@ -86,11 +87,12 @@ public class ChannelsExecutor extends DBOperator {
             if (!rs.getBoolean(1)) throw new AccessDenied();
         }
     }
+
     static class Invitations {
         static @NotNull String create (long user, long channel) throws SQLException, AccessDenied {
             String sql = """
-                SELECT channels.create_invitation(?, ?)
-            """;
+                        SELECT channels.create_invitation(?, ?)
+                    """;
             PreparedStatement stmt;
 
             stmt = conn.prepareStatement(sql);
@@ -106,16 +108,17 @@ public class ChannelsExecutor extends DBOperator {
             if (uri != null) return uri;
             else throw new AccessDenied();
         }
+
         static void delete (long user, String uri) throws SQLException, AccessDenied {
 
         }
     }
 
     static class Messages {
-        static Timestamp postMessage (long author, long channel, String text) throws SQLException {
+        static Timestamp postMessage (long author, long channel, @NotNull String text) throws SQLException {
             String sql = """
-                SELECT channels.post_message(?, ?, ?)
-            """;
+                        SELECT channels.post_message(?, ?, ?)
+                    """;
             PreparedStatement stmt;
 
             stmt = conn.prepareStatement(sql);
@@ -128,6 +131,23 @@ public class ChannelsExecutor extends DBOperator {
             rs.next();
 
             return rs.getTimestamp(1);
+        }
+
+        static void editMessage (CommandsPatterns.Channels.Messages.@NotNull Edit command) throws SQLException {
+            String sql = """
+                        INSERT INTO channels.messages_data (channel, original, edited, data)
+                        VALUES
+                            (%s, %s, %s, %s)
+                    """;
+            PreparedStatement stmt;
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, command.channel);
+            stmt.setTimestamp(2, command.posted);
+            stmt.setTimestamp(3, Timestamp.from(Instant.ofEpochSecond(System.currentTimeMillis())));
+            stmt.setString(4, command.text);
+
+            stmt.executeQuery();
         }
     }
 }

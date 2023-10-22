@@ -3,6 +3,7 @@ import com.jsoniter.output.JsonStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
 
 import static java.lang.String.join;
 
@@ -44,6 +45,40 @@ public class ResponsesPatterns {
                     String serialize (String hash) {
                         return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
                     }
+                }
+            }
+
+            static class Edit {
+                @JsonIgnore
+                static final String[] intention = Commands.USER_CHANNELS_MESSAGES_EDIT.intents;
+
+                long author;
+                long channel;
+                String posted;
+                String text;
+                CommandsPatterns.Channels.Messages.Edit.Attachments attachments;
+
+                Edit (CommandsPatterns.Channels.Messages.@NotNull Edit command) throws ParseException {
+                    this.author = command.author;
+                    this.channel = command.channel;
+                    this.posted = Helper.Constants.timestamp.format(command.posted);
+                    this.text = command.text;
+                    this.attachments = command.attachments;
+                }
+
+                String serialize (String hash) {
+                    return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                }
+            }
+
+            static class Delete {
+                static final String[] intention = Commands.USER_CHANNELS_MESSAGES_DELETE.intents;
+
+                long channel;
+                String posted;
+
+                Delete (CommandsPatterns.Channels.Messages.@NotNull Delete command) {
+
                 }
             }
         }

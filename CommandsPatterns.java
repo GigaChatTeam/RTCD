@@ -1,6 +1,10 @@
+import com.jsoniter.annotation.JsonCreator;
 import com.jsoniter.annotation.JsonProperty;
+import com.jsoniter.annotation.JsonWrapper;
 
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.Map;
 
 public class CommandsPatterns {
@@ -54,17 +58,27 @@ public class CommandsPatterns {
 
             static class Edit {
                 static class Attachments {
-                    static class Reorganize {
-                        long author;
-                        long message;
-                        Map<Long, byte[]> layout;
-                    }
+                    long[] attachments;
+                    byte[][] layout;
                 }
+                long author;
+                long channel;
+                Timestamp posted;
+                String text;
+                Attachments attachments;
 
-                static class Text {
-                    long message;
-                    long author;
-                    String new_text;
+                @JsonCreator
+                Edit (
+                        @JsonProperty("author") long author,
+                        @JsonProperty("channel") long channel,
+                        @JsonProperty("posted") String posted,
+                        @JsonProperty("text") String text,
+                        @JsonProperty("attachments") Attachments attachments) throws ParseException {
+                    this.author = author;
+                    this.channel = channel;
+                    this.posted = new Timestamp(Helper.Constants.timestamp.parse(posted).getTime());
+                    this.text = text;
+                    this.attachments = attachments;
                 }
             }
 
