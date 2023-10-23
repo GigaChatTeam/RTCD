@@ -60,7 +60,6 @@ public class Helper {
         Map<String, String> params = new HashMap<>();
         for (String param : query.split("&")) {
             String[] entry = param.split("=");
-            System.out.println(Arrays.toString(entry));
             params.put(entry[0], entry[1]);
         }
 

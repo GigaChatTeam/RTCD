@@ -8,7 +8,7 @@ public class Client {
     public final long id;
     private final String token;
     public boolean status = false;
-    private ArrayList<Long> channels;
+    private final ArrayList<Long> channels = new ArrayList<>();
 
     public Client (WebSocket sock, long id, String token) {
         this.socket = sock;

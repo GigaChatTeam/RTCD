@@ -117,7 +117,7 @@ public class ChannelsExecutor extends DBOperator {
     static class Messages {
         static Timestamp postMessage (long author, long channel, @NotNull String text) throws SQLException {
             String sql = """
-                        SELECT channels.post_message(?, ?, ?)
+                        SELECT channels.post_message_new(?, ?, ?)
                     """;
             PreparedStatement stmt;
 

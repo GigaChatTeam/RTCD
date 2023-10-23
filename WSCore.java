@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.util.Arrays;
 
 
 class WSCore extends WebSocketServer {
@@ -25,7 +26,7 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
-        System.out.println(clientHandshake.getResourceDescriptor()); // Debug
+        if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor()); // Debug
 
         Helper.ConnectionPath connectParams;
 
@@ -54,11 +55,7 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        if (Starter.DEBUG >= 3) {
-            System.out.println(message);
-            clients.sendAll(message);
-            return;
-        }
+        if (Starter.DEBUG >= 3) System.out.println(message);
 
         Helper.MessagePacket packet = Helper.parsePacket(message);
         Commands cmd = Commands.byIntents(packet.intention);
@@ -71,9 +68,10 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        if (!clientIDVerifier(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author)) {
-            webSocket.send(STR. "SYSTEM%\{ packet.hash }%\{ JsonStream.serialize(SystemResponses.Errors.Systems.NOT_VALID_ID()) }" );
-            return;
+        if (Starter.DEBUG >= 3) {
+            System.out.println(Arrays.toString(packet.intention));
+            System.out.println(packet.hash);
+            System.out.println(JsonStream.serialize(JsonStream.serialize(packet.postData)));
         }
 
         try {
