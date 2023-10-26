@@ -1,4 +1,7 @@
 import com.jsoniter.output.JsonStream;
+import exceptions.AccessDenied;
+import exceptions.NotFound;
+import exceptions.NotValid;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -114,6 +117,24 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel,
                             new ResponsesPatterns.Channels.Messages.Edit((CommandsPatterns.Channels.Messages.Edit) packet.postData).serialize(packet.hash));
                 }
+                case ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_TITLE -> {
+                    ChannelsExecutor.Settings.External.changeTitle(
+                            ((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).client,
+                            ((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).channel,
+                            ((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).newTitle);
+
+                    clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).channel,
+                            new ResponsesPatterns.Channels.Settings.External.Change.Title((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).serialize(packet.hash));
+                }
+                case ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_DESCRIPTION -> {
+                    ChannelsExecutor.Settings.External.changeTitle(
+                            ((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).client,
+                            ((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
+                            ((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).newDescription);
+
+                    clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
+                            new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
+                }
                 default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {
@@ -125,6 +146,12 @@ class WSCore extends WebSocketServer {
         } catch (ParseException e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
             webSocket.send(SystemResponses.Errors.Users.MESSAGE_DAMAGED(packet.hash));
+        } catch (NotFound.Channel e) {
+            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            webSocket.send(SystemResponses.Errors.Users.NOT_FOUND(packet.hash));
+        } catch (NotValid.Data e) {
+            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            webSocket.send(SystemResponses.Errors.Users.NOT_VALID_DATA(packet.hash));
         }
     }
 

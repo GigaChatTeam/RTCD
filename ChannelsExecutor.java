@@ -1,3 +1,6 @@
+import exceptions.AccessDenied;
+import exceptions.NotFound;
+import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.PreparedStatement;
@@ -148,6 +151,67 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setString(4, command.text);
 
             stmt.executeQuery();
+        }
+
+        static void editMessage (long channel, Timestamp posted, String text) throws SQLException {
+            String sql = """
+                        INSERT INTO channels.messages_data (channel, original, edited, data)
+                        VALUES
+                            (%s, %s, %s, %s)
+                    """;
+            PreparedStatement stmt;
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, channel);
+            stmt.setTimestamp(2, posted);
+            stmt.setTimestamp(3, Timestamp.from(Instant.ofEpochSecond(System.currentTimeMillis())));
+            stmt.setString(4, text);
+
+            stmt.executeQuery();
+        }
+    }
+
+    static class Settings {
+        static class External {
+            static void changeTitle (long user, long channel, @NotNull String newTitle) throws SQLException, NotFound.Channel, NotValid.Data {
+                if (newTitle.length() > 2 && newTitle.length() < 33) throw new NotValid.Data();
+
+                String sql = """
+                            SELECT channels.change_title(%s, %s, %s)
+                        """;
+                PreparedStatement stmt;
+
+                stmt = conn.prepareStatement(sql);
+                stmt.setLong(1, user);
+                stmt.setLong(2, channel);
+                stmt.setString(3, newTitle);
+
+                ResultSet rs = stmt.executeQuery();
+
+                rs.next();
+
+                if (rs.getBoolean(1)) throw new NotFound.Channel();
+            }
+
+            static void changeDescription (long user, long channel, @NotNull String newDescription) throws SQLException, NotFound.Channel, NotValid.Data {
+                if (newDescription.length() < 257) throw new NotValid.Data();
+
+                String sql = """
+                        SELECT channels.change_description(%s, %s, %s)
+                        """;
+                PreparedStatement stmt;
+
+                stmt = conn.prepareStatement(sql);
+                stmt.setLong(1, user);
+                stmt.setLong(2, channel);
+                stmt.setString(3, newDescription);
+
+                ResultSet rs = stmt.executeQuery();
+
+                rs.next();
+
+                if (rs.getBoolean(1)) throw new NotFound.Channel();
+            }
         }
     }
 }

@@ -132,22 +132,22 @@ public class CommandsPatterns {
             String title;
         }
 
-        static class Edit {
-            static class Visual {
-                long admin;
-                String key;
-                String value;
-            }
-
-            static class Permissions {
-                long admin;
-                long user = 1;
-                short[] permission;
-                Boolean value = null;
-            }
-
-            static class System {
-
+        static class Settings {
+            static class External {
+                static class Change {
+                    static class Title {
+                        long client;
+                        long channel;
+                        @JsonProperty("new-title")
+                        String newTitle;
+                    }
+                    static class Description {
+                        long client;
+                        long channel;
+                        @JsonProperty("new-description")
+                        String newDescription;
+                    }
+                }
             }
         }
 

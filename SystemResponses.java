@@ -31,6 +31,14 @@ public class SystemResponses {
                     entry("target", "system"),
                     entry("status", "not valid id")
             ));
+            public static String NOT_FOUND = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "not found")
+            ));
+            public static String NOT_VALID_DATA = JsonStream.serialize(Map.ofEntries(
+                    entry("target", "system"),
+                    entry("status", "not valid data")
+            ));
         }
 
         static class Users {
@@ -48,6 +56,14 @@ public class SystemResponses {
 
             static String NOT_AUTHORIZED (String hash) {
                 return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_AUTHORIZED }" ;
+            }
+
+            public static String NOT_FOUND (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_FOUND }" ;
+            }
+
+            static String NOT_VALID_DATA (String hash) {
+                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_VALID_DATA }" ;
             }
         }
 
