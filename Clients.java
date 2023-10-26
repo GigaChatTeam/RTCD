@@ -79,4 +79,8 @@ class Clients {
     public boolean getClientConnectionStatus (WebSocket webSocket) {
         return clients.get(webSocket).status;
     }
+
+    public HashMap<WebSocket, Client> getClients () {
+        return clients;
+    }
 }
