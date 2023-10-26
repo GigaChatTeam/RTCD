@@ -173,50 +173,44 @@ public class ChannelsExecutor extends DBOperator {
 
     static class Settings {
         static class External {
-            static void changeTitle (long channel, @NotNull String newTitle) throws SQLException, NotFound.Channel, NotValid.Data {
+            static void changeTitle (long user, long channel, @NotNull String newTitle) throws SQLException, NotFound.Channel, NotValid.Data {
                 if (newTitle.length() > 2 && newTitle.length() < 33) throw new NotValid.Data();
 
                 String sql = """
-                            UPDATE channels."index"
-                            SET
-                                title = %s
-                            WHERE
-                                id = %s
+                            SELECT channels.change_title(%s, %s, %s)
                         """;
                 PreparedStatement stmt;
 
                 stmt = conn.prepareStatement(sql);
-                stmt.setString(1, newTitle);
+                stmt.setLong(1, user);
                 stmt.setLong(2, channel);
+                stmt.setString(3, newTitle);
 
                 ResultSet rs = stmt.executeQuery();
 
                 rs.next();
 
-                if (rs.getByte(1) == 0) throw new NotFound.Channel();
+                if (rs.getBoolean(1)) throw new NotFound.Channel();
             }
 
-            static void changeDescription (long channel, @NotNull String newDescription) throws SQLException, NotFound.Channel, NotValid.Data {
+            static void changeDescription (long user, long channel, @NotNull String newDescription) throws SQLException, NotFound.Channel, NotValid.Data {
                 if (newDescription.length() < 257) throw new NotValid.Data();
 
                 String sql = """
-                        UPDATE channels."index"
-                        SET
-                            description = %s
-                        WHERE
-                            id = %s
+                        SELECT channels.change_description(%s, %s, %s)
                         """;
                 PreparedStatement stmt;
 
                 stmt = conn.prepareStatement(sql);
-                stmt.setString(1, newDescription);
+                stmt.setLong(1, user);
                 stmt.setLong(2, channel);
+                stmt.setString(3, newDescription);
 
                 ResultSet rs = stmt.executeQuery();
 
                 rs.next();
 
-                if (rs.getByte(1) == 0) throw new NotFound.Channel();
+                if (rs.getBoolean(1)) throw new NotFound.Channel();
             }
         }
     }
