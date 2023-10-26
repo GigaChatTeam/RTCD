@@ -6,6 +6,9 @@ public enum Commands {
     ADMIN_CHANNELS_USERS_ADD(new String[]{"ADMIN", "CHANNELS", "USERS", "ADD"}, CommandsPatterns.Channels.Users.Add.class),
     ADMIN_CHANNELS_USERS_REMOVE(new String[]{"ADMIN", "CHANNELS", "USERS", "REMOVE"}, CommandsPatterns.Channels.Users.Remove.class),
 
+    ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_TITLE(new String[]{"ADMIN", "CHANNELS", "SETTINGS", "EXTERNAL", "CHANGE", "TITLE"}, CommandsPatterns.Channels.Settings.External.Change.Title.class),
+    ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_DESCRIPTION(new String[]{"ADMIN", "CHANNELS", "SETTINGS", "EXTERNAL", "CHANGE", "DESCRIPTION"}, CommandsPatterns.Channels.Settings.External.Change.Description.class),
+
     USER_CHANNELS_JOIN(new String[]{"USER", "CHANNELS", "JOIN"}, CommandsPatterns.Channels.Users.Join.class),
     USER_CHANNELS_LEAVE(new String[]{"USER", "CHANNELS", "LEAVE"}, CommandsPatterns.Channels.Users.Leave.class),
 

@@ -1,5 +1,7 @@
 import com.jsoniter.annotation.JsonIgnore;
+import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
@@ -79,6 +81,47 @@ public class ResponsesPatterns {
 
                 Delete (CommandsPatterns.Channels.Messages.@NotNull Delete command) {
 
+                }
+            }
+        }
+
+        static class Settings {
+            static class External {
+                static class Change {
+                    static class Title {
+                        @JsonIgnore
+                        static final String[] intention = Commands.ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_TITLE.intents;
+
+                        long channel;
+                        @JsonProperty("new-description")
+                        String newTitle;
+
+                        Title (CommandsPatterns.Channels.Settings.External.Change.@NotNull Title command) {
+                            this.channel = command.channel;
+                            this.newTitle = command.newTitle;
+                        }
+
+                        String serialize (String hash) {
+                            return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                        }
+                    }
+                    static class Description {
+                        @JsonIgnore
+                        static final String[] intention = Commands.ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_DESCRIPTION.intents;
+
+                        long channel;
+                        @JsonProperty("new-description")
+                        String newDescription;
+
+                        Description (CommandsPatterns.Channels.Settings.External.Change.@NotNull Description command) {
+                            this.channel = command.channel;
+                            this.newDescription = command.newDescription;
+                        }
+
+                        String serialize (String hash) {
+                            return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                        }
+                    }
                 }
             }
         }
