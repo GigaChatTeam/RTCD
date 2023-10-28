@@ -95,17 +95,17 @@ class WSCore extends WebSocketServer {
                 }
                 case SYSTEM_CHANNELS_LISTEN_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel)
+                            ((CommandsPatterns.Systems.Listen.Channel.Add) packet.postData).client,
+                            ((CommandsPatterns.Systems.Listen.Channel.Add) packet.postData).channel)
                     ) throw new AccessDenied();
 
                     clients.addListeningClientToChannel(
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
-                            ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
+                            ((CommandsPatterns.Systems.Listen.Channel.Add) packet.postData).client,
+                            ((CommandsPatterns.Systems.Listen.Channel.Add) packet.postData).channel);
                 }
                 case SYSTEM_CHANNELS_LISTEN_REMOVE -> clients.removeListeningClientFromChannel(
-                        ((CommandsPatterns.Systems.Listen.Add) packet.postData).client,
-                        ((CommandsPatterns.Systems.Listen.Add) packet.postData).channel);
+                        ((CommandsPatterns.Systems.Listen.Channel.Remove) packet.postData).client,
+                        ((CommandsPatterns.Systems.Listen.Channel.Remove) packet.postData).channel);
                 case USER_CHANNELS_MESSAGES_EDIT -> {
                     if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel)) {
                         webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
@@ -134,6 +134,13 @@ class WSCore extends WebSocketServer {
 
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
+                }
+                case SYSTEM_TTOKENS_GENERATE -> {
+                    webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
+                            ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions,
+                            SystemExecutor.generateTToken(
+                                    ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).user,
+                                    ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions)).serialize(packet.hash));
                 }
                 default -> throw new ParseException("SERVER ERROR", 1);
             }
