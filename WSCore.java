@@ -146,10 +146,10 @@ class WSCore extends WebSocketServer {
         } catch (ParseException e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
             webSocket.send(SystemResponses.Errors.Users.MESSAGE_DAMAGED(packet.hash));
-        } catch (NotFound.Channel e) {
+        } catch (NotFound e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
             webSocket.send(SystemResponses.Errors.Users.NOT_FOUND(packet.hash));
-        } catch (NotValid.Data e) {
+        } catch (NotValid e) {
             if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
             webSocket.send(SystemResponses.Errors.Users.NOT_VALID_DATA(packet.hash));
         }

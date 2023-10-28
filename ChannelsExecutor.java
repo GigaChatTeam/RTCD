@@ -118,7 +118,7 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     static class Messages {
-        static Timestamp postMessage (long author, long channel, @NotNull String text) throws SQLException {
+        static @NotNull Timestamp postMessage (long author, long channel, @NotNull String text) throws SQLException, AccessDenied {
             String sql = """
                         SELECT channels.post_message_new(?, ?, ?)
                     """;
@@ -133,7 +133,10 @@ public class ChannelsExecutor extends DBOperator {
 
             rs.next();
 
-            return rs.getTimestamp(1);
+            Timestamp timestamp = rs.getTimestamp(1);
+
+            if (timestamp != null) return timestamp;
+            else throw new AccessDenied();
         }
 
         static void editMessage (CommandsPatterns.Channels.Messages.@NotNull Edit command) throws SQLException {
@@ -173,8 +176,8 @@ public class ChannelsExecutor extends DBOperator {
 
     static class Settings {
         static class External {
-            static void changeTitle (long user, long channel, @NotNull String newTitle) throws SQLException, NotFound.Channel, NotValid.Data {
-                if (newTitle.length() > 2 && newTitle.length() < 33) throw new NotValid.Data();
+            static void changeTitle (long user, long channel, @NotNull String newTitle) throws SQLException, NotFound, NotValid {
+                if (newTitle.length() > 2 && newTitle.length() < 33) throw new NotValid();
 
                 String sql = """
                             SELECT channels.change_title(%s, %s, %s)
@@ -190,11 +193,11 @@ public class ChannelsExecutor extends DBOperator {
 
                 rs.next();
 
-                if (rs.getBoolean(1)) throw new NotFound.Channel();
+                if (rs.getBoolean(1)) throw new NotFound();
             }
 
-            static void changeDescription (long user, long channel, @NotNull String newDescription) throws SQLException, NotFound.Channel, NotValid.Data {
-                if (newDescription.length() < 257) throw new NotValid.Data();
+            static void changeDescription (long user, long channel, @NotNull String newDescription) throws SQLException, NotFound, NotValid {
+                if (newDescription.length() < 257) throw new NotValid();
 
                 String sql = """
                         SELECT channels.change_description(%s, %s, %s)
@@ -210,7 +213,7 @@ public class ChannelsExecutor extends DBOperator {
 
                 rs.next();
 
-                if (rs.getBoolean(1)) throw new NotFound.Channel();
+                if (rs.getBoolean(1)) throw new NotFound();
             }
         }
     }

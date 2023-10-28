@@ -1,11 +1,5 @@
 package exceptions;
 
-public class NotValid {
-    public static class Data extends Exception {
+public class NotValid extends Exception {
 
-    }
-
-    static class Target extends Exception {
-
-    }
 }
