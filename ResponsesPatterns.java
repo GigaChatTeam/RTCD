@@ -1,7 +1,6 @@
 import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
@@ -105,6 +104,7 @@ public class ResponsesPatterns {
                             return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
                         }
                     }
+
                     static class Description {
                         @JsonIgnore
                         static final String[] intention = Commands.ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_DESCRIPTION.intents;
@@ -142,6 +142,28 @@ public class ResponsesPatterns {
 
             String serialize (String hash) {
                 return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+            }
+        }
+    }
+
+    static class System {
+        static class TTokens {
+            static class Generate {
+                @JsonIgnore
+                static final String[] intention = Commands.SYSTEM_TTOKENS_GENERATE.intents;
+
+                @JsonProperty("intention")
+                String[] intentions;
+                String token;
+
+                Generate (String[] intentions, String token) {
+                    this.intentions = intentions;
+                    this.token = token;
+                }
+
+                String serialize (String hash) {
+                    return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                }
             }
         }
     }

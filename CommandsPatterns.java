@@ -10,14 +10,23 @@ import java.util.Map;
 public class CommandsPatterns {
     static class Systems {
         static class Listen {
-            static class Add {
-                long client;
-                long channel;
-            }
+            static class Channel {
+                static class Add {
+                    long client;
+                    long channel;
+                }
 
-            static class Remove {
-                long client;
-                long channel;
+                static class Remove {
+                    long client;
+                    long channel;
+                }
+            }
+        }
+
+        static class TTokens {
+            static class Generate {
+                String[] intentions;
+                long user;
             }
         }
     }
