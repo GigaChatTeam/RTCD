@@ -1,5 +1,6 @@
 import com.jsoniter.output.JsonStream;
 import dbexecutors.ChannelsExecutor;
+import dbexecutors.PermissionOperator;
 import dbexecutors.SystemExecutor;
 import exceptions.AccessDenied;
 import exceptions.NotFound;
@@ -31,7 +32,7 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
-        if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor()); // Debug
+        if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor());
 
         Helper.ConnectionPath connectParams;
 
@@ -140,13 +141,11 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
-                case SYSTEM_TTOKENS_GENERATE -> {
-                    webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
-                            ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions,
-                            SystemExecutor.generateTToken(
-                                    ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).user,
-                                    ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions)).serialize(packet.hash));
-                }
+                case SYSTEM_TTOKENS_GENERATE -> webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
+                        ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions,
+                        SystemExecutor.generateTToken(
+                                ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).user,
+                                ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions)).serialize(packet.hash));
                 default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {

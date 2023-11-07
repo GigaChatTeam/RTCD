@@ -1,13 +1,8 @@
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.jsoniter.JsonIterator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,9 +73,5 @@ public class Helper {
             System.out.println(e.toString());
             return null;
         }
-    }
-
-    public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {
-        return BCrypt.verifyer().verify(Arrays.copyOfRange(data.toCharArray(), 0, Math.min(data.toCharArray().length, 72)), hash_data).verified;
     }
 }

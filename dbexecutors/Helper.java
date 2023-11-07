@@ -1,11 +1,19 @@
 package dbexecutors;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
-public class Helper {
-        static String SHA512 (String string) {
+class Helper {
+    public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {
+        return BCrypt.verifyer().verify(Arrays.copyOfRange(data.toCharArray(), 0, Math.min(data.toCharArray().length, 72)), hash_data).verified;
+    }
+
+    static String SHA512 (String string) {
         MessageDigest md;
 
         try {
