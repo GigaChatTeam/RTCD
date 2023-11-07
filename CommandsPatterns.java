@@ -8,39 +8,39 @@ import java.text.ParseException;
 import java.util.Map;
 
 public class CommandsPatterns {
-    static class Systems {
-        static class Listen {
-            static class Channel {
-                static class Add {
+    public static class Systems {
+        public static class Listen {
+            public static class Channel {
+                public static class Add {
                     long client;
                     long channel;
                 }
 
-                static class Remove {
+                public static class Remove {
                     long client;
                     long channel;
                 }
             }
         }
 
-        static class TTokens {
-            static class Generate {
+        public static class TTokens {
+            public static class Generate {
                 String[] intentions;
                 long user;
             }
         }
     }
 
-    static class Channels {
-        static class Messages {
-            static class Post {
-                static class New {
+    public static class Channels {
+        public static class Messages {
+            public static class Post {
+                public static class New {
                     long author;
                     long channel;
                     String text;
                 }
 
-                static class ForwardMessage {
+                public static class ForwardMessage {
                     protected static class SourceMessage {
                         long channel;
                         Timestamp posted;
@@ -52,7 +52,7 @@ public class CommandsPatterns {
                     SourceMessage original_message;
                 }
 
-                static class ForwardPost {
+                public static class ForwardPost {
                     protected static class SourcePost {
                         long channel;
                         Timestamp posted;
@@ -65,7 +65,7 @@ public class CommandsPatterns {
                 }
             }
 
-            static class Edit {
+            public static class Edit {
                 static class Attachments {
                     long[] attachments;
                     byte[][] layout;
@@ -91,14 +91,14 @@ public class CommandsPatterns {
                 }
             }
 
-            static class Delete {
+            public static class Delete {
                 long admin = -1L;
                 long author;
                 long message;
             }
         }
 
-        static class Reactions {
+        public static class Reactions {
             static class Add {
                 long author;
                 long message;
@@ -111,46 +111,46 @@ public class CommandsPatterns {
             }
         }
 
-        static class Users {
-            static class Join {
+        public static class Users {
+            public static class Join {
                 long user;
                 long channel;
                 String invitation;
             }
 
-            static class Leave {
+            public static class Leave {
                 long user;
                 long channel;
             }
 
-            static class Add {
+            public static class Add {
                 long admin;
                 long user;
                 long channel;
             }
 
-            static class Remove {
+            public static class Remove {
                 long admin;
                 long user;
                 long channel;
             }
         }
 
-        static class Create {
+        public static class Create {
             long owner;
             String title;
         }
 
-        static class Settings {
-            static class External {
-                static class Change {
-                    static class Title {
+        public static class Settings {
+            public static class External {
+                public static class Change {
+                    public static class Title {
                         long client;
                         long channel;
                         @JsonProperty("new-title")
                         String newTitle;
                     }
-                    static class Description {
+                    public static class Description {
                         long client;
                         long channel;
                         @JsonProperty("new-description")
@@ -160,7 +160,7 @@ public class CommandsPatterns {
             }
         }
 
-        static class Delete {
+        public static class Delete {
             long owner;
             long channel;
         }

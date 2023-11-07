@@ -1,4 +1,6 @@
 import com.jsoniter.output.JsonStream;
+import dbexecutors.ChannelsExecutor;
+import dbexecutors.SystemExecutor;
 import exceptions.AccessDenied;
 import exceptions.NotFound;
 import exceptions.NotValid;
@@ -112,7 +114,10 @@ class WSCore extends WebSocketServer {
                         return;
                     }
 
-                    ChannelsExecutor.Messages.editMessage((CommandsPatterns.Channels.Messages.Edit) packet.postData);
+                    ChannelsExecutor.Messages.editMessage(
+                            ((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel,
+                            ((CommandsPatterns.Channels.Messages.Edit) packet.postData).posted,
+                            ((CommandsPatterns.Channels.Messages.Edit) packet.postData).text);
 
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel,
                             new ResponsesPatterns.Channels.Messages.Edit((CommandsPatterns.Channels.Messages.Edit) packet.postData).serialize(packet.hash));
