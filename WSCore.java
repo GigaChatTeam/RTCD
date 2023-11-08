@@ -14,7 +14,6 @@ import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.Arrays;
 
 
 class WSCore extends WebSocketServer {
@@ -74,11 +73,11 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        if (Starter.DEBUG >= 3) {
-            System.out.println(Arrays.toString(packet.intention));
-            System.out.println(packet.hash);
-            System.out.println(JsonStream.serialize(JsonStream.serialize(packet.postData)));
-        }
+//        if (Starter.DEBUG >= 3) {
+//            System.out.println(Arrays.toString(packet.intention));
+//            System.out.println(packet.hash);
+//            System.out.println(JsonStream.serialize(JsonStream.serialize(packet.postData)));
+//        }
 
         try {
             switch (cmd) {
@@ -123,6 +122,11 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Edit) packet.postData).channel,
                             new ResponsesPatterns.Channels.Messages.Edit((CommandsPatterns.Channels.Messages.Edit) packet.postData).serialize(packet.hash));
                 }
+                case ADMIN_CHANNELS_CREATE -> webSocket.send(new ResponsesPatterns.Channels.Create(
+                        (CommandsPatterns.Channels.Create) packet.postData,
+                        ChannelsExecutor.create(
+                                ((CommandsPatterns.Channels.Create) packet.postData).owner,
+                                ((CommandsPatterns.Channels.Create) packet.postData).title)).serialize(packet.hash));
                 case ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_TITLE -> {
                     ChannelsExecutor.Settings.External.changeTitle(
                             ((CommandsPatterns.Channels.Settings.External.Change.Title) packet.postData).client,
