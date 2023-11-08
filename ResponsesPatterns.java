@@ -1,6 +1,8 @@
 import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
+import dbexecutors.SystemExecutor.Channels.Token;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
@@ -150,15 +152,16 @@ public class ResponsesPatterns {
         static class TTokens {
             static class Generate {
                 @JsonIgnore
-                static final String[] intention = Commands.SYSTEM_TTOKENS_GENERATE.intents;
+                static final String[] intention = Commands.SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY.intents;
 
                 @JsonProperty("intention")
                 String[] intentions;
                 String token;
 
-                Generate (String[] intentions, String token) {
-                    this.intentions = intentions;
-                    this.token = token;
+                @Contract(pure = true)
+                Generate (@NotNull Token ttoken) {
+                    this.intentions = ttoken.intention;
+                    this.token = ttoken.token;
                 }
 
                 String serialize (String hash) {

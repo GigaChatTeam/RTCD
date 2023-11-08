@@ -1,6 +1,8 @@
 package dbexecutors;
 
 import exceptions.AccessDenied;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -28,17 +30,31 @@ public class SystemExecutor extends DBOperator {
         return ttoken;
     }
 
-    static class Channels {
-        static class History {
-            static String loadMessagesHistory (long client, long channel) throws SQLException, AccessDenied {
+    public static class Channels {
+        public static final class Token {
+            public String token;
+            public String[] intention;
+
+            public Token (String token, String[] intentions) {
+                this.token = token;
+                this.intention = intentions;
+            }
+        }
+
+        public static class History {
+            @Contract("_, _ -> new")
+            public static @NotNull Token loadMessagesHistory (long client, long channel) throws SQLException, AccessDenied {
                 if (TTIntentions.Channels.History.validateLoadMessagesHistory(client, channel)) {
-                    return generateTToken(client, new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)});
+                    String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)};
+                    return new Token(generateTToken(client, intention), intention);
                 } throw new AccessDenied();
             }
 
-            static String loadPermissions (long client, long channel) throws SQLException, AccessDenied {
+            @Contract("_, _ -> new")
+            public static @NotNull Token loadPermissions (long client, long channel) throws SQLException, AccessDenied {
                 if (TTIntentions.Channels.History.validateLoadPermissions(client, channel)) {
-                    return generateTToken(client, new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)});
+                    String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)};
+                    return new Token(generateTToken(client, intention), intention);
                 } throw new AccessDenied();
             }
         }

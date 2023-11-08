@@ -1,6 +1,7 @@
 import com.jsoniter.output.JsonStream;
 import dbexecutors.ChannelsExecutor;
 import dbexecutors.PermissionOperator;
+import dbexecutors.SystemExecutor;
 import exceptions.AccessDenied;
 import exceptions.NotFound;
 import exceptions.NotValid;
@@ -144,11 +145,18 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
-//                case SYSTEM_TTOKENS_GENERATE -> webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
-//                        ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions,
-//                        SystemExecutor.generateTToken(
-//                                ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).user,
-//                                ((CommandsPatterns.Systems.TTokens.Generate) packet.postData).intentions)).serialize(packet.hash));
+                case SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY -> {
+                    switch (((CommandsPatterns.Systems.TTokens.DeterminationIntentions) packet.postData).intentions) {
+                        case "LOAD-CHANNELS-MESSAGES-HISTORY" ->
+                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
+                        case "LOAD-CHANNELS-PERMISSIONS" ->
+                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
+                    }
+                }
                 default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {

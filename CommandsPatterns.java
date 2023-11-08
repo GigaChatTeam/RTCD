@@ -1,11 +1,9 @@
 import com.jsoniter.annotation.JsonCreator;
+import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
-import com.jsoniter.annotation.JsonWrapper;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.Map;
 
 public class CommandsPatterns {
     public static class Systems {
@@ -24,9 +22,26 @@ public class CommandsPatterns {
         }
 
         public static class TTokens {
-            public static class Generate {
-                String[] intentions;
-                long user;
+            abstract protected static class DeterminationIntentions {
+                @JsonIgnore
+                String intentions;
+            }
+
+            public static class Channels {
+                public static class Load {
+                    public static class MessagesHistory extends DeterminationIntentions {
+                        @JsonIgnore
+                        String intentions = "LOAD-CHANNELS-MESSAGES-HISTORY";
+
+                        long channel;
+                    }
+                    public static class Permissions extends DeterminationIntentions {
+                        @JsonIgnore
+                        String intentions = "LOAD-CHANNELS-PERMISSIONS";
+
+                        long channel;
+                    }
+                }
             }
         }
     }

@@ -24,7 +24,7 @@ public enum Commands {
     SYSTEM_CHANNELS_LISTEN_ADD(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "ADD"}, CommandsPatterns.Systems.Listen.Channel.Add.class),
     SYSTEM_CHANNELS_LISTEN_REMOVE(new String[]{"SYSTEM", "CHANNELS", "LISTEN", "REMOVE"}, CommandsPatterns.Systems.Listen.Channel.Remove.class),
 
-    SYSTEM_TTOKENS_GENERATE(new String[]{"SYSTEM", "TTOKENS", "GENERATE"}, CommandsPatterns.Systems.TTokens.Generate.class);
+    SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY(new String[]{"SYSTEM", "TTOKENS", "CHANNELS", "LOAD", "MESSAGES", "HISTORY"}, CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory.class);
 
     final String[] intents;
     final Class<?> pattern;
