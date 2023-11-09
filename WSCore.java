@@ -1,7 +1,7 @@
 import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.JsonException;
 import dbexecutors.ChannelsExecutor;
 import dbexecutors.PermissionOperator;
-import dbexecutors.SystemExecutor;
 import exceptions.AccessDenied;
 import exceptions.NotFound;
 import exceptions.NotValid;
@@ -67,9 +67,9 @@ class WSCore extends WebSocketServer {
 
         try {
             packet.parseData(cmd.pattern);
-        } catch (NullPointerException e) {
+        } catch (JsonException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
-            webSocket.send(STR. "SYSTEM%MISS%\{ JsonStream.serialize(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS()) }" );
+            webSocket.send(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS());
             return;
         }
 
@@ -145,19 +145,27 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
-                case SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY -> {
-                    switch (((CommandsPatterns.Systems.TTokens.DeterminationIntentions) packet.postData).intentions) {
-                        case "LOAD-CHANNELS-MESSAGES-HISTORY" ->
-                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-                                        clients.getID(webSocket),
-                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
-                        case "LOAD-CHANNELS-PERMISSIONS" ->
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
-                                        clients.getID(webSocket),
-                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
-                    }
-                }
-                default -> throw new ParseException("SERVER ERROR", 1);
+// It is necessary to deal with the errors of type handling
+//                case SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY -> {
+//                    switch (((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).intentions) {
+//                        case "LOAD-CHANNELS-MESSAGES-HISTORY" -> {
+//                            try {
+//                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
+//                                        clients.getID(webSocket),
+//                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
+//                            } catch (Exception e) {
+//                                System.out.println("Ошибка при кейсе");
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                        case "LOAD-CHANNELS-PERMISSIONS" ->
+//                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
+//                                        clients.getID(webSocket),
+//                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
+//                        case null, default -> throw new ParseException("ОК. Типо тут.", 1);
+//                    }
+//                }
+                case null, default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {
             if (Starter.DEBUG >= 1) System.out.println(e.getMessage());

@@ -1,5 +1,4 @@
 import com.jsoniter.annotation.JsonCreator;
-import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 
 import java.sql.Timestamp;
@@ -22,23 +21,14 @@ public class CommandsPatterns {
         }
 
         public static class TTokens {
-            abstract protected static class DeterminationIntentions {
-                @JsonIgnore
-                String intentions;
-            }
-
             public static class Channels {
                 public static class Load {
-                    public static class MessagesHistory extends DeterminationIntentions {
-                        @JsonIgnore
-                        String intentions = "LOAD-CHANNELS-MESSAGES-HISTORY";
-
+                    public static class MessagesHistory {
+                        String intentions;
                         long channel;
                     }
-                    public static class Permissions extends DeterminationIntentions {
-                        @JsonIgnore
+                    public static class Permissions {
                         String intentions = "LOAD-CHANNELS-PERMISSIONS";
-
                         long channel;
                     }
                 }
