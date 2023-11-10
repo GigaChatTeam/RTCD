@@ -68,7 +68,7 @@ class WSCore extends WebSocketServer {
         try {
             packet.parseData(cmd.pattern);
         } catch (JsonException e) {
-            if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 1) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS());
             return;
         }
@@ -168,19 +168,19 @@ class WSCore extends WebSocketServer {
                 case null, default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {
-            if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 1) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Users.SERVER_ERROR(packet.hash));
         } catch (AccessDenied e) {
-            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 2) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Users.PERMISSION_DENIED(packet.hash));
         } catch (ParseException e) {
-            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 2) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Users.MESSAGE_DAMAGED(packet.hash));
         } catch (NotFound e) {
-            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 2) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Users.NOT_FOUND(packet.hash));
         } catch (NotValid e) {
-            if (Starter.DEBUG >= 2) System.out.println(e.getMessage());
+            if (Starter.DEBUG >= 2) e.printStackTrace();
             webSocket.send(SystemResponses.Errors.Users.NOT_VALID_DATA(packet.hash));
         }
     }
