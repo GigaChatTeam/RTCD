@@ -1,4 +1,5 @@
 import com.jsoniter.output.JsonStream;
+import com.jsoniter.spi.JsonException;
 import dbexecutors.ChannelsExecutor;
 import dbexecutors.PermissionOperator;
 import dbexecutors.SystemExecutor;
@@ -12,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.ParseException;
+import java.util.Arrays;
 
 
 class WSCore extends WebSocketServer {
@@ -67,9 +68,9 @@ class WSCore extends WebSocketServer {
 
         try {
             packet.parseData(cmd.pattern);
-        } catch (NullPointerException e) {
-            if (Starter.DEBUG >= 1) System.out.println(e.getMessage());
-            webSocket.send(STR. "SYSTEM%MISS%\{ JsonStream.serialize(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS()) }" );
+        } catch (JsonException e) {
+            if (Starter.DEBUG >= 1) e.printStackTrace();
+            webSocket.send(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS());
             return;
         }
 
@@ -87,13 +88,12 @@ class WSCore extends WebSocketServer {
                         return;
                     }
 
-                    Timestamp posted = ChannelsExecutor.Messages.postMessage(
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text);
-
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData, posted).serialize(packet.hash));
+                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData,
+                                    ChannelsExecutor.Messages.postMessage(
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text)).serialize(packet.hash));
                 }
                 case SYSTEM_CHANNELS_LISTEN_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
@@ -145,16 +145,37 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
-                case SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY -> {
-                    switch (((CommandsPatterns.Systems.TTokens.DeterminationIntentions) packet.postData).intentions) {
-                        case "LOAD-CHANNELS-MESSAGES-HISTORY" ->
+                case SYSTEM_TTOKENS_GENERATE -> {
+                    System.out.println("УРААА???");
+
+                    CommandsPatterns.Systems.TTokens.Generate ttokenQuery;
+                    Object queryData;
+
+                    try {
+                        Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
+
+                        System.out.println(JsonStream.serialize(wrapper));
+                        System.out.println(Arrays.toString(wrapper.intentions));
+
+                        ttokenQuery = CommandsPatterns.Systems.TTokens.Generate.byIntents(wrapper.intentions);
+
+                        queryData = wrapper.data.as(ttokenQuery.pattern);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return;
+                    } finally {
+                        System.out.println("...");
+                    }
+
+                    switch (ttokenQuery) {
+                        case CommandsPatterns.Systems.TTokens.Generate.USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY ->
                                 webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
                                         clients.getID(webSocket),
-                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
-                        case "LOAD-CHANNELS-PERMISSIONS" ->
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
+                                        ((CommandsPatterns.Systems.TTokens.TTokensPatterns.Users.Download.Channels.Messages.History) queryData).channel)).serialize(packet.hash));
+                        case USERS_DOWNLOAD_CHANNELS_PERMISSIONS ->
+                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
                                         clients.getID(webSocket),
-                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
+                                        ((CommandsPatterns.Systems.TTokens.TTokensPatterns.Users.Download.Channels.Permissions) queryData).channel)).serialize(packet.hash));
                     }
                 }
                 default -> throw new ParseException("SERVER ERROR", 1);

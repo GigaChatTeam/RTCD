@@ -1,9 +1,9 @@
 import com.jsoniter.annotation.JsonCreator;
-import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
+import java.util.Arrays;
 
 public class CommandsPatterns {
     public static class Systems {
@@ -22,25 +22,48 @@ public class CommandsPatterns {
         }
 
         public static class TTokens {
-            abstract protected static class DeterminationIntentions {
-                @JsonIgnore
-                String intentions;
+            protected static class TTokensPatterns {
+                public static class Users {
+                    public static class Download {
+                        public static class Channels {
+                            public static class Messages {
+                                public static class History {
+                                    long channel;
+                                }
+                            }
+
+                            public static class Permissions {
+                                long channel;
+                            }
+                        }
+                    }
+                }
             }
 
-            public static class Channels {
-                public static class Load {
-                    public static class MessagesHistory extends DeterminationIntentions {
-                        @JsonIgnore
-                        String intentions = "LOAD-CHANNELS-MESSAGES-HISTORY";
+            public enum Generate {
+                USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY(new String[]{"USERS", "DOWNLOAD", "CHANNELS", "MESSAGES", "HISTORY"}, TTokensPatterns.Users.Download.Channels.Messages.History.class),
+                USERS_DOWNLOAD_CHANNELS_PERMISSIONS(new String[]{"USERS", "DOWNLOAD", "CHANNELS", "PERMISSIONS"}, TTokensPatterns.Users.Download.Channels.Permissions.class);
 
-                        long channel;
-                    }
-                    public static class Permissions extends DeterminationIntentions {
-                        @JsonIgnore
-                        String intentions = "LOAD-CHANNELS-PERMISSIONS";
+                final String[] intents;
+                final Class<?> pattern;
 
-                        long channel;
-                    }
+                Generate (String[] intents, Class<?> pattern) {
+                    this.intents = intents;
+                    this.pattern = pattern;
+                }
+
+                public static Generate byIntents (String[] intents) {
+                    return Arrays.stream(Generate.values())
+                            .filter(v -> Arrays.equals(v.intents, intents))
+                            .findFirst()
+                            .orElse(null);
+                }
+
+                @JsonCreator
+                Generate (
+                        @JsonProperty("intentions") String[] intentions) {
+                    this.intents = intentions;
+                    this.pattern = null;
                 }
             }
         }
@@ -85,6 +108,7 @@ public class CommandsPatterns {
                     long[] attachments;
                     byte[][] layout;
                 }
+
                 long author;
                 long channel;
                 Timestamp posted;
@@ -165,6 +189,7 @@ public class CommandsPatterns {
                         @JsonProperty("new-title")
                         String newTitle;
                     }
+
                     public static class Description {
                         long client;
                         long channel;

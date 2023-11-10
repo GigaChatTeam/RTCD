@@ -152,9 +152,8 @@ public class ResponsesPatterns {
         static class TTokens {
             static class Generate {
                 @JsonIgnore
-                static final String[] intention = Commands.SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY.intents;
+                static final String intention = "SYSTEM-TTOKENS-GENERATE";
 
-                @JsonProperty("intention")
                 String[] intentions;
                 String token;
 

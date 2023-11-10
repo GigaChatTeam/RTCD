@@ -1,4 +1,5 @@
 import com.jsoniter.JsonIterator;
+import com.jsoniter.any.Any;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +37,19 @@ public class Helper {
         }
 
         public void parseData (Class<?> pattern) {
-            postData = JsonIterator.deserialize(preData, pattern);
+            try {
+                System.out.println(pattern);
+                System.out.println(preData);
+                postData = JsonIterator.deserialize(preData, pattern);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static class TTokenQueryWrapper {
+        String[] intentions;
+        Any data;
     }
 
     @Contract("_ -> new")
