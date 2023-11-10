@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Arrays;
 
 
 class WSCore extends WebSocketServer {
@@ -146,26 +145,9 @@ class WSCore extends WebSocketServer {
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
                 case SYSTEM_TTOKENS_GENERATE -> {
-                    System.out.println("УРААА???");
-
-                    CommandsPatterns.Systems.TTokens.Generate ttokenQuery;
-                    Object queryData;
-
-                    try {
-                        Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
-
-                        System.out.println(JsonStream.serialize(wrapper));
-                        System.out.println(Arrays.toString(wrapper.intentions));
-
-                        ttokenQuery = CommandsPatterns.Systems.TTokens.Generate.byIntents(wrapper.intentions);
-
-                        queryData = wrapper.data.as(ttokenQuery.pattern);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return;
-                    } finally {
-                        System.out.println("...");
-                    }
+                    Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
+                    CommandsPatterns.Systems.TTokens.Generate ttokenQuery = CommandsPatterns.Systems.TTokens.Generate.byIntents(wrapper.intentions);
+                    Object queryData = wrapper.data.as(ttokenQuery.pattern);
 
                     switch (ttokenQuery) {
                         case CommandsPatterns.Systems.TTokens.Generate.USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY ->

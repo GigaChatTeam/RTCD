@@ -37,13 +37,7 @@ public class Helper {
         }
 
         public void parseData (Class<?> pattern) {
-            try {
-                System.out.println(pattern);
-                System.out.println(preData);
-                postData = JsonIterator.deserialize(preData, pattern);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            postData = JsonIterator.deserialize(preData, pattern);
         }
     }
 

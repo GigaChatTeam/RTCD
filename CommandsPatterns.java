@@ -58,13 +58,6 @@ public class CommandsPatterns {
                             .findFirst()
                             .orElse(null);
                 }
-
-                @JsonCreator
-                Generate (
-                        @JsonProperty("intentions") String[] intentions) {
-                    this.intents = intentions;
-                    this.pattern = null;
-                }
             }
         }
     }
