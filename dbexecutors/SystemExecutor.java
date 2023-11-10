@@ -53,7 +53,7 @@ public class SystemExecutor extends DBOperator {
             @Contract("_, _ -> new")
             public static @NotNull Token loadPermissions (long client, long channel) throws SQLException, AccessDenied {
                 if (TTIntentions.Channels.History.validateLoadPermissions(client, channel)) {
-                    String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)};
+                    String[] intention = new String[]{"LOAD", "CHANNELS", "PERMISSIONS", valueOf(channel)};
                     return new Token(generateTToken(client, intention), intention);
                 } throw new AccessDenied();
             }

@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.ParseException;
 
 
@@ -87,13 +86,12 @@ class WSCore extends WebSocketServer {
                         return;
                     }
 
-                    Timestamp posted = ChannelsExecutor.Messages.postMessage(
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text);
-
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData, posted).serialize(packet.hash));
+                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData,
+                                    ChannelsExecutor.Messages.postMessage(
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
+                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text)).serialize(packet.hash));
                 }
                 case SYSTEM_CHANNELS_LISTEN_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
@@ -145,27 +143,23 @@ class WSCore extends WebSocketServer {
                     clients.sendCommandToChannel(((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).channel,
                             new ResponsesPatterns.Channels.Settings.External.Change.Description((CommandsPatterns.Channels.Settings.External.Change.Description) packet.postData).serialize(packet.hash));
                 }
-// It is necessary to deal with the errors of type handling
-//                case SYSTEM_TTOKENS_CHANNELS_LOAD_MESSAGES_HISTORY -> {
-//                    switch (((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).intentions) {
-//                        case "LOAD-CHANNELS-MESSAGES-HISTORY" -> {
-//                            try {
-//                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-//                                        clients.getID(webSocket),
-//                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
-//                            } catch (Exception e) {
-//                                System.out.println("Ошибка при кейсе");
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        case "LOAD-CHANNELS-PERMISSIONS" ->
-//                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
-//                                        clients.getID(webSocket),
-//                                        ((CommandsPatterns.Systems.TTokens.Channels.Load.MessagesHistory) packet.postData).channel)).serialize(packet.hash));
-//                        case null, default -> throw new ParseException("ОК. Типо тут.", 1);
-//                    }
-//                }
-                case null, default -> throw new ParseException("SERVER ERROR", 1);
+                case SYSTEM_TTOKENS_GENERATE -> {
+                    Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
+                    CommandsPatterns.Systems.TTokens.Generate ttokenQuery = CommandsPatterns.Systems.TTokens.Generate.byIntents(wrapper.intentions);
+                    Object queryData = wrapper.data.as(ttokenQuery.pattern);
+
+                    switch (ttokenQuery) {
+                        case CommandsPatterns.Systems.TTokens.Generate.USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY ->
+                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Systems.TTokens.TTokensPatterns.Users.Download.Channels.Messages.History) queryData).channel)).serialize(packet.hash));
+                        case USERS_DOWNLOAD_CHANNELS_PERMISSIONS ->
+                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadPermissions(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Systems.TTokens.TTokensPatterns.Users.Download.Channels.Permissions) queryData).channel)).serialize(packet.hash));
+                    }
+                }
+                default -> throw new ParseException("SERVER ERROR", 1);
             }
         } catch (SQLException e) {
             if (Starter.DEBUG >= 1) e.printStackTrace();

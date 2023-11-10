@@ -38,6 +38,8 @@ class TTIntentions {
 
                 ResultSet rs = stmt.executeQuery();
 
+                rs.next();
+
                 return rs.getBoolean(1);
             }
         }
