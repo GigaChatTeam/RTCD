@@ -20,10 +20,10 @@ public class SystemExecutor extends DBOperator {
                         (?, ?, now(), ?)
                 """;
 
-        PreparedStatement stmt = DBOperator.conn.prepareStatement(sql);
+        PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setLong(1, client);
         stmt.setString(2, ttoken);
-        stmt.setArray(3, DBOperator.conn.createArrayOf("text", intentions));
+        stmt.setArray(3, conn.createArrayOf("text", intentions));
 
         stmt.execute();
 
@@ -45,7 +45,7 @@ public class SystemExecutor extends DBOperator {
             @Contract("_, _ -> new")
             public static @NotNull Token loadMessagesHistory (long client, long channel) throws SQLException, AccessDenied {
                 if (TTIntentions.Channels.History.validateLoadMessagesHistory(client, channel)) {
-                    String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", "HISTORY", valueOf(channel)};
+                    String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", valueOf(channel)};
                     return new Token(generateTToken(client, intention), intention);
                 } throw new AccessDenied();
             }

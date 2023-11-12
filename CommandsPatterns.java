@@ -41,7 +41,7 @@ public class CommandsPatterns {
             }
 
             public enum Generate {
-                USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY(new String[]{"USERS", "DOWNLOAD", "CHANNELS", "MESSAGES", "HISTORY"}, TTokensPatterns.Users.Download.Channels.Messages.History.class),
+                USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY(new String[]{"USERS", "DOWNLOAD", "CHANNELS", "MESSAGES"}, TTokensPatterns.Users.Download.Channels.Messages.History.class),
                 USERS_DOWNLOAD_CHANNELS_PERMISSIONS(new String[]{"USERS", "DOWNLOAD", "CHANNELS", "PERMISSIONS"}, TTokensPatterns.Users.Download.Channels.Permissions.class);
 
                 final String[] intents;
