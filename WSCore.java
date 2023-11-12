@@ -150,7 +150,10 @@ class WSCore extends WebSocketServer {
                     Object queryData = wrapper.data.as(ttokenQuery.pattern);
 
                     switch (ttokenQuery) {
-                        case CommandsPatterns.Systems.TTokens.Generate.USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY ->
+                        case USERS_DOWNLOAD_CHANNELS ->
+                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadChannels(
+                                        clients.getID(webSocket))).serialize(packet.hash));
+                        case USERS_DOWNLOAD_CHANNELS_MESSAGES_HISTORY ->
                                 webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
                                         clients.getID(webSocket),
                                         ((CommandsPatterns.Systems.TTokens.TTokensPatterns.Users.Download.Channels.Messages.History) queryData).channel)).serialize(packet.hash));

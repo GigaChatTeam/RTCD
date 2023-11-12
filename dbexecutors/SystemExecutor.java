@@ -42,6 +42,12 @@ public class SystemExecutor extends DBOperator {
         }
 
         public static class History {
+            @Contract("_ -> new")
+            public static @NotNull Token loadChannels (long client) throws SQLException {
+                String[] intention = new String[]{"LOAD", "CHANNELS"};
+                return new Token(generateTToken(client, intention), intention);
+            }
+
             @Contract("_, _ -> new")
             public static @NotNull Token loadMessagesHistory (long client, long channel) throws SQLException, AccessDenied {
                 if (TTIntentions.Channels.History.validateLoadMessagesHistory(client, channel)) {
