@@ -15,7 +15,7 @@ public class SystemExecutor extends DBOperator {
         String ttoken = Helper.SHA512(randomUUID().toString());
 
         String sql = """
-                    INSERT INTO public.ttokens (client, token, extradition, intentions)
+                    INSERT INTO users.ttokens (client, token, extradition, intentions)
                     VALUES
                         (?, ?, now(), ?)
                 """;

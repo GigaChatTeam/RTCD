@@ -8,7 +8,7 @@ public class PermissionOperator extends DBOperator {
     public static boolean validateToken (long id, String user_token) {
         String sql = """
             SELECT token
-            FROM public.tokens
+            FROM users.tokens
             WHERE
                 client = ?
         """;
