@@ -2,7 +2,6 @@ import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
 import dbexecutors.SystemExecutor.Channels.Token;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Timestamp;
@@ -23,7 +22,7 @@ public class ResponsesPatterns {
                     String text;
                     String posted;
 
-                    New (CommandsPatterns.Channels.Messages.Post.@NotNull New command, Timestamp posted) {
+                    New (CommandsPatterns.Channels.Messages.Post.New command, Timestamp posted) {
                         this.author = command.author;
                         this.channel = command.channel;
                         this.text = command.text;
@@ -61,7 +60,7 @@ public class ResponsesPatterns {
                 String text;
                 CommandsPatterns.Channels.Messages.Edit.Attachments attachments;
 
-                Edit (CommandsPatterns.Channels.Messages.@NotNull Edit command) throws ParseException {
+                Edit (CommandsPatterns.Channels.Messages.Edit command) throws ParseException {
                     this.author = command.author;
                     this.channel = command.channel;
                     this.posted = Helper.Constants.timestamp.format(command.posted);
@@ -80,7 +79,7 @@ public class ResponsesPatterns {
                 long channel;
                 String posted;
 
-                Delete (CommandsPatterns.Channels.Messages.@NotNull Delete command) {
+                Delete (CommandsPatterns.Channels.Messages.Delete command) {
 
                 }
             }
@@ -97,7 +96,7 @@ public class ResponsesPatterns {
                         @JsonProperty("new-description")
                         String newTitle;
 
-                        Title (CommandsPatterns.Channels.Settings.External.Change.@NotNull Title command) {
+                        Title (CommandsPatterns.Channels.Settings.External.Change.Title command) {
                             this.channel = command.channel;
                             this.newTitle = command.newTitle;
                         }
@@ -115,7 +114,7 @@ public class ResponsesPatterns {
                         @JsonProperty("new-description")
                         String newDescription;
 
-                        Description (CommandsPatterns.Channels.Settings.External.Change.@NotNull Description command) {
+                        Description (CommandsPatterns.Channels.Settings.External.Change.Description command) {
                             this.channel = command.channel;
                             this.newDescription = command.newDescription;
                         }
@@ -136,7 +135,7 @@ public class ResponsesPatterns {
             String title;
             long id;
 
-            Create (CommandsPatterns.Channels.@NotNull Create command, long id) {
+            Create (CommandsPatterns.Channels.Create command, long id) {
                 this.owner = command.owner;
                 this.title = command.title;
                 this.id = id;
@@ -157,7 +156,6 @@ public class ResponsesPatterns {
                 String[] intentions;
                 String token;
 
-                @Contract(pure = true)
                 Generate (@NotNull Token ttoken) {
                     this.intentions = ttoken.intention;
                     this.token = ttoken.token;
