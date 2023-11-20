@@ -31,7 +31,16 @@ public enum Commands {
     CHANNELS_USERS_INVITATIONS_DELETE("174", null),
     // Presence in channels
     CHANNELS_USERS_JOIN("171", null),
-    CHANNELS_USERS_LEAVE("170", null);
+    CHANNELS_USERS_LEAVE("170", null),
+    // Working with messages in channels
+    CHANNELS_USERS_MESSAGES_POST_NEW("5CF", null),
+    CHANNELS_USERS_MESSAGES_POST_FORWARD_MESSAGE("2E70", null),
+    CHANNELS_USERS_MESSAGES_POST_FORWARD_NEWS("2E71", null),
+    CHANNELS_USERS_MESSAGES_POST_FORWARD_TWIG("2E72", null),
+    CHANNELS_USERS_MESSAGES_POST_FORWARD_MEDIA("2E73", null),
+    CHANNELS_USERS_MESSAGES_POST_FORWARD_SMESSAGE("2E74", null),
+    CHANNELS_USERS_MESSAGES_EDIT("2E6", null),
+    CHANNELS_USERS_MESSAGES_DELETE("2E4", null);
 
     final String intents;
     final Class<?> pattern;
@@ -43,8 +52,8 @@ public enum Commands {
 
     public static Commands byIntents (String intents) {
         return Arrays.stream(Commands.values())
-            .filter(v -> Objects.equals(v.intents, intents))
-            .findFirst()
-            .orElse(null);
+                .filter(v -> Objects.equals(v.intents, intents))
+                .findFirst()
+                .orElse(null);
     }
 }
