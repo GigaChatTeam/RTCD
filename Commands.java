@@ -3,6 +3,9 @@ import java.util.Objects;
 
 
 public enum Commands {
+    // Connection management
+    SYSTEM_CONNECTION("20", null),
+
     // System channels management
     CHANNELS_SYSTEM_CREATE("B3", null),
     CHANNELS_SYSTEM_DELETE("B2", null),
@@ -19,7 +22,16 @@ public enum Commands {
     CHANNELS_ADMIN_USERS_BAN("2DE", null),
     CHANNELS_ADMIN_USERS_KICK("2DF", null),
     // Changing external settings
-    CHANNELS_ADMIN_SETTINGS("B5", null);
+    CHANNELS_ADMIN_SETTINGS("B5", null),
+    // Channel listening control
+    CHANNELS_SYSTEM_LISTENING_ADD("B1", null),
+    CHANNELS_SYSTEM_LISTENING_REMOVE("B0", null),
+    // Channel invitations
+    CHANNELS_USERS_INVITATIONS_CREATE("175", null),
+    CHANNELS_USERS_INVITATIONS_DELETE("174", null),
+    // Presence in channels
+    CHANNELS_USERS_JOIN("171", null),
+    CHANNELS_USERS_LEAVE("170", null);
 
     final String intents;
     final Class<?> pattern;
