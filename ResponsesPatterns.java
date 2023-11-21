@@ -1,164 +1,156 @@
 import com.jsoniter.annotation.JsonIgnore;
 import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
-import dbexecutors.SystemExecutor.Channels.Token;
-import org.jetbrains.annotations.NotNull;
-
-import java.sql.Timestamp;
-import java.text.ParseException;
+import dbexecutors.SystemExecutor;
 
 import static java.lang.String.join;
 
 public class ResponsesPatterns {
-    static class Channels {
-        static class Messages {
-            static class Post {
-                static class New {
-                    static final String[] intention = Commands.USER_CHANNELS_MESSAGES_POST_NEW.intents;
-
-                    long author;
-                    long channel;
-                    String type = "TEXT MESSAGE";
-                    String text;
-                    String posted;
-
-                    New (CommandsPatterns.Channels.Messages.Post.New command, Timestamp posted) {
-                        this.author = command.author;
-                        this.channel = command.channel;
-                        this.text = command.text;
-                        this.posted = Helper.Constants.timestamp.format(posted);
-                    }
-
-                    New (long author, long channel, String text, Timestamp posted) {
-                        this.author = author;
-                        this.channel = channel;
-                        this.text = text;
-                        this.posted = Helper.Constants.timestamp.format(posted);
-                    }
-
-                    New (long author, long channel, String type, String text, Timestamp posted) {
-                        this.author = author;
-                        this.channel = channel;
-                        this.type = type;
-                        this.text = text;
-                        this.posted = Helper.Constants.timestamp.format(posted);
-                    }
-
-                    String serialize (String hash) {
-                        return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
-                    }
-                }
-            }
-
-            static class Edit {
+    static class System {
+        static class ServerErrors {
+            static class InternalError {
                 @JsonIgnore
-                static final String[] intention = Commands.USER_CHANNELS_MESSAGES_EDIT.intents;
+                static final String intention = "88";
 
-                long author;
-                long channel;
-                String posted;
-                String text;
-                CommandsPatterns.Channels.Messages.Edit.Attachments attachments;
-
-                Edit (CommandsPatterns.Channels.Messages.Edit command) throws ParseException {
-                    this.author = command.author;
-                    this.channel = command.channel;
-                    this.posted = Helper.Constants.timestamp.format(command.posted);
-                    this.text = command.text;
-                    this.attachments = command.attachments;
-                }
-
-                String serialize (String hash) {
-                    return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                String serialize (String controlHash) {
+                    return STR. "\{ intention }%\{ controlHash }%{}" ;
                 }
             }
 
-            static class Delete {
-                static final String[] intention = Commands.USER_CHANNELS_MESSAGES_DELETE.intents;
+            static class OutdatedServer {
+                @JsonIgnore
+                static final String intention = "89";
 
-                long channel;
-                String posted;
-
-                Delete (CommandsPatterns.Channels.Messages.Delete command) {
-
+                String serialize (String controlHash) {
+                    return STR. "\{ intention }%\{ controlHash }%{}" ;
                 }
             }
         }
 
-        static class Settings {
-            static class External {
-                static class Change {
-                    static class Title {
-                        @JsonIgnore
-                        static final String[] intention = Commands.ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_TITLE.intents;
+        static class ClientErrors {
+            static class DataErrors {
+                static class NotValidIntentions {
+                    static final String intention = "210";
 
-                        long channel;
-                        @JsonProperty("new-description")
-                        String newTitle;
-
-                        Title (CommandsPatterns.Channels.Settings.External.Change.Title command) {
-                            this.channel = command.channel;
-                            this.newTitle = command.newTitle;
-                        }
-
-                        String serialize (String hash) {
-                            return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
-                        }
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%{}" ;
                     }
+                }
 
-                    static class Description {
-                        @JsonIgnore
-                        static final String[] intention = Commands.ADMIN_CHANNELS_SETTINGS_EXTERNAL_CHANGE_DESCRIPTION.intents;
+                static class NotValidData {
+                    static final String intention = "210";
 
-                        long channel;
-                        @JsonProperty("new-description")
-                        String newDescription;
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                    }
+                }
+            }
 
-                        Description (CommandsPatterns.Channels.Settings.External.Change.Description command) {
-                            this.channel = command.channel;
-                            this.newDescription = command.newDescription;
-                        }
+            static class AccessErrors {
+                static class AccessDenied {
+                    @JsonIgnore
+                    static final String intention = "89";
 
-                        String serialize (String hash) {
-                            return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
-                        }
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                    }
+                }
+
+                static class NotFound {
+                    @JsonIgnore
+                    static final String intention = "89";
+
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%{}" ;
                     }
                 }
             }
         }
 
-        static class Create {
-            @JsonIgnore
-            static final String[] intention = Commands.ADMIN_CHANNELS_CREATE.intents;
+        static class ConnectionParameters {
+            static class ConnectionControl {
+                @JsonIgnore
+                static final String intention = "88";
+                boolean status;
 
-            long owner;
-            String title;
-            long id;
+                ConnectionControl (boolean status) {
+                    this.status = status;
+                }
 
-            Create (CommandsPatterns.Channels.Create command, long id) {
-                this.owner = command.owner;
-                this.title = command.title;
-                this.id = id;
+                String serialize (String controlHash) {
+                    return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                }
             }
+        }
 
-            String serialize (String hash) {
-                return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+        static class TTokens {
+            static class Generate {
+                @JsonIgnore
+                static final String intention = "";
+
+                @JsonProperty("intention")
+                String intentions;
+                String token;
+
+                Generate (SystemExecutor.Channels.Token token) {
+                    this.intentions = join("-", token.intention);
+                    this.token = token.token;
+                }
+
+                String serialize (String controlHash) {
+                    return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                }
             }
         }
     }
 
-    static class System {
-        static class TTokens {
-            static class Generate {
-                @JsonIgnore
-                static final String intention = "SYSTEM-TTOKENS-GENERATE";
+    static class Channels {
+        static class System {
+            static class Control {
+                public static class Create {
+                    @JsonIgnore
+                    static final String intention = "";
 
-                String[] intentions;
-                String token;
+                    long id;
+                    String title;
+                    String description = "";
 
-                Generate (@NotNull Token ttoken) {
-                    this.intentions = ttoken.intention;
-                    this.token = ttoken.token;
+                    Create (long id, String title, String description) {
+                        this.id = id;
+                        this.title = title;
+                        this.description = description;
+                    }
+
+                    Create (long id, String title) {
+                        this.id = id;
+                        this.title = title;
+                    }
+
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                    }
+                }
+
+                public static class Delete {
+                    long id;
+                    String reason = "";
+                }
+            }
+
+            static class Notification {
+                static class AddListening {
+                    @JsonIgnore
+                    static final String intention = "B1";
+
+                    long channel;
+
+                    AddListening (long channel) {
+                        this.channel = channel;
+                    }
+
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                    }
                 }
 
                 String serialize (String hash) {

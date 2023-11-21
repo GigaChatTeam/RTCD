@@ -18,19 +18,17 @@ class Clients {
 
     public boolean isUserInChannel (long client, long channel) {
         return clients.values().parallelStream()
-                .filter(c -> c.getChannels().contains(channel))
-                .anyMatch(c -> c.id == client);
+                .filter(c -> c.id == client)
+                .anyMatch(c -> c.getChannels().contains(channel));
     }
     public boolean isUserInChannel (WebSocket webSocket, long channel) {
         return clients.values().parallelStream()
+                .filter(c -> c.socket == webSocket)
                 .anyMatch(c -> c.getChannels().contains(channel));
     }
 
     public boolean isUserConnected (WebSocket webSocket) {
-        return true;
-    }
-    public boolean isUserConnected (long client, long channel) {
-        return true;
+        return clients.containsKey(webSocket);
     }
 
     public void addClient (Client client) {
@@ -54,7 +52,7 @@ class Clients {
                 .filter(c -> c.id == client)
                 .forEach(c -> c.addListenChannel(channel));
     }
-    public void removeListeningClientToChannel (WebSocket socket, long channel) {
+    public void removeListeningClientFromChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.removeListenChannel(channel));

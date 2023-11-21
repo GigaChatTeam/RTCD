@@ -3,12 +3,13 @@ import com.jsoniter.any.Any;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Helper {
-    static class Constants {
+    static final class Constants {
         static final SimpleDateFormat timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     }
 
@@ -26,14 +27,18 @@ public class Helper {
 
     public static class MessagePacket {
         final String hash;
-        final String[] intention;
+        final String intention;
         final String preData;
         Object postData;
 
-        public MessagePacket (String[] intention, String controlSum, String data) {
-            this.intention = intention;
-            this.hash = controlSum;
-            this.preData = data;
+        public MessagePacket (@NotNull String packet) throws ParseException {
+            String[] splitPacket = packet.split("%", 3);
+
+            if (splitPacket.length != 3) throw new ParseException("Invalid packet", 0);
+
+            this.intention = splitPacket[0];
+            this.hash = splitPacket[1];
+            this.preData = splitPacket[2];
         }
 
         public void parseData (Class<?> pattern) {
@@ -42,7 +47,7 @@ public class Helper {
     }
 
     public static class TTokenQueryWrapper {
-        String[] intentions;
+        String intention;
         Any data;
     }
 
@@ -65,19 +70,5 @@ public class Helper {
         }
 
         return new Helper.ConnectionPath(pathParts, params);
-    }
-
-    @Contract("_ -> new")
-    public static @NotNull MessagePacket parsePacket (@NotNull String packet) {
-        String[] splitPacket = packet.split("%");
-
-        MessagePacket result = new MessagePacket(splitPacket[0].split("-"), splitPacket[1], splitPacket[2]);
-
-        try {
-            return result;
-        } catch (Exception e) {
-            System.out.println(e.toString());
-            return null;
-        }
     }
 }
