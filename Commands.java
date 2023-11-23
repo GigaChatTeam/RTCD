@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public enum Commands {
     // Connection management
-    SYSTEM_CONNECTION("20", CommandsPatterns.System.Connection.class),
+    SYSTEM_CONNECTION("20", CommandsPatterns.System.ConnectionParameters.ConnectionControl.class),
 
     // System channels management
     CHANNELS_SYSTEM_CREATE("B3", CommandsPatterns.Channels.System.Control.Create.class),

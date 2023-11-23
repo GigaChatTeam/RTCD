@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Client {
-    protected final WebSocket socket;
     public final long id;
+    protected final WebSocket socket;
     private final String token;
-    public boolean status = false;
     private final ArrayList<Long> channels = new ArrayList<>();
+    public boolean status = false;
 
     public Client (WebSocket sock, long id, String token) {
         this.socket = sock;
@@ -16,7 +16,7 @@ public class Client {
         this.token = token;
     }
 
-    public boolean verifyToken(String token) {
+    public boolean verifyToken (String token) {
         return Objects.equals(token, this.token);
     }
 
@@ -25,6 +25,7 @@ public class Client {
             channels.add(channel);
         }
     }
+
     public void removeListenChannel (long channel) {
         channels.remove(channel);
     }
@@ -32,6 +33,7 @@ public class Client {
     public void send (String data) {
         socket.send(data);
     }
+
     public void close (int code, String reason) {
         socket.close(code, reason);
     }

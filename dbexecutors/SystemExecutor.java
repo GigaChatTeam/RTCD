@@ -53,7 +53,8 @@ public class SystemExecutor extends DBOperator {
                 if (TTIntentions.Channels.History.validateLoadMessagesHistory(client, channel)) {
                     String[] intention = new String[]{"LOAD", "CHANNELS", "MESSAGES", valueOf(channel)};
                     return new Token(generateTToken(client, intention), intention);
-                } throw new AccessDenied();
+                }
+                throw new AccessDenied();
             }
 
             @Contract("_, _ -> new")
@@ -61,7 +62,8 @@ public class SystemExecutor extends DBOperator {
                 if (TTIntentions.Channels.History.validateLoadPermissions(client, channel)) {
                     String[] intention = new String[]{"LOAD", "CHANNELS", "PERMISSIONS", valueOf(channel)};
                     return new Token(generateTToken(client, intention), intention);
-                } throw new AccessDenied();
+                }
+                throw new AccessDenied();
             }
         }
     }

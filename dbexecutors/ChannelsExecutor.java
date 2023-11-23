@@ -18,7 +18,7 @@ public class ChannelsExecutor extends DBOperator {
                 """;
         PreparedStatement stmt;
 
-        stmt = DBOperator.conn.prepareStatement(sql);
+        stmt = conn.prepareStatement(sql);
         stmt.setLong(1, owner);
         stmt.setString(2, title);
 
@@ -30,40 +30,13 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Users {
-        public static class Permissions {
-            public static boolean isClientOnChannel (long client, long channel) throws SQLException {
-                String sql = """
-                            SELECT EXISTS (
-                                SELECT *
-                                FROM channels.users
-                                WHERE
-                                    client = ? AND
-                                    channel = ? AND
-                                    leaved IS NULL
-                            )
-                        """;
-                PreparedStatement stmt;
-
-                stmt = DBOperator.conn.prepareStatement(sql);
-
-                stmt.setLong(1, client);
-                stmt.setLong(2, channel);
-
-                ResultSet rs = stmt.executeQuery();
-
-                rs.next();
-
-                return rs.getBoolean(1);
-            }
-        }
-
         public static void join (long user, long channel, String uri) throws SQLException, AccessDenied {
             String sql = """
                         SELECT channels.join_user(?, ?, ?)
                     """;
             PreparedStatement stmt;
 
-            stmt = DBOperator.conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
             stmt.setString(3, uri);
@@ -81,7 +54,7 @@ public class ChannelsExecutor extends DBOperator {
                     """;
             PreparedStatement stmt;
 
-            stmt = DBOperator.conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
 
@@ -90,6 +63,33 @@ public class ChannelsExecutor extends DBOperator {
             rs.next();
 
             if (!rs.getBoolean(1)) throw new AccessDenied();
+        }
+
+        public static class Permissions {
+            public static boolean isClientOnChannel (long client, long channel) throws SQLException {
+                String sql = """
+                            SELECT EXISTS (
+                                SELECT *
+                                FROM channels.users
+                                WHERE
+                                    client = ? AND
+                                    channel = ? AND
+                                    leaved IS NULL
+                            )
+                        """;
+                PreparedStatement stmt;
+
+                stmt = conn.prepareStatement(sql);
+
+                stmt.setLong(1, client);
+                stmt.setLong(2, channel);
+
+                ResultSet rs = stmt.executeQuery();
+
+                rs.next();
+
+                return rs.getBoolean(1);
+            }
         }
     }
 
@@ -100,7 +100,7 @@ public class ChannelsExecutor extends DBOperator {
                     """;
             PreparedStatement stmt;
 
-            stmt = DBOperator.conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
 
@@ -126,7 +126,7 @@ public class ChannelsExecutor extends DBOperator {
                     """;
             PreparedStatement stmt;
 
-            stmt = DBOperator.conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setLong(1, author);
             stmt.setLong(2, channel);
             stmt.setString(3, text);
@@ -149,7 +149,7 @@ public class ChannelsExecutor extends DBOperator {
                     """;
             PreparedStatement stmt;
 
-            stmt = DBOperator.conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setLong(1, channel);
             stmt.setTimestamp(2, posted);
             stmt.setTimestamp(3, Timestamp.from(Instant.ofEpochSecond(System.currentTimeMillis())));
@@ -169,7 +169,7 @@ public class ChannelsExecutor extends DBOperator {
                         """;
                 PreparedStatement stmt;
 
-                stmt = DBOperator.conn.prepareStatement(sql);
+                stmt = conn.prepareStatement(sql);
                 stmt.setLong(1, user);
                 stmt.setLong(2, channel);
                 stmt.setString(3, newTitle);
@@ -189,7 +189,7 @@ public class ChannelsExecutor extends DBOperator {
                         """;
                 PreparedStatement stmt;
 
-                stmt = DBOperator.conn.prepareStatement(sql);
+                stmt = conn.prepareStatement(sql);
                 stmt.setLong(1, user);
                 stmt.setLong(2, channel);
                 stmt.setString(3, newDescription);

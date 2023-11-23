@@ -5,7 +5,7 @@ import java.util.HashMap;
 class Clients {
     private final HashMap<WebSocket, Client> clients = new HashMap<>();
 
-    public void sendAll(String message) {
+    public void sendAll (String message) {
         clients.keySet().parallelStream()
                 .forEach(client -> client.send(message));
     }
@@ -21,6 +21,7 @@ class Clients {
                 .filter(c -> c.id == client)
                 .anyMatch(c -> c.getChannels().contains(channel));
     }
+
     public boolean isUserInChannel (WebSocket webSocket, long channel) {
         return clients.values().parallelStream()
                 .filter(c -> c.socket == webSocket)
@@ -34,10 +35,12 @@ class Clients {
     public void addClient (Client client) {
         clients.put(client.socket, client);
     }
+
     public Boolean isClientConnected (long client) {
         return clients.values().stream()
-            .anyMatch(c -> c.id == client);
+                .anyMatch(c -> c.id == client);
     }
+
     public void removeClient (WebSocket socket) {
         clients.remove(socket);
     }
@@ -47,16 +50,19 @@ class Clients {
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.addListenChannel(channel));
     }
+
     public void addListeningClientToChannel (long client, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.id == client)
                 .forEach(c -> c.addListenChannel(channel));
     }
+
     public void removeListeningClientFromChannel (WebSocket socket, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.socket == socket)
                 .forEach(c -> c.removeListenChannel(channel));
     }
+
     public void removeListeningClientFromChannel (long client, long channel) {
         clients.values().parallelStream()
                 .filter(c -> c.id == client)
@@ -65,15 +71,16 @@ class Clients {
 
     public long getID (WebSocket webSocket) {
         return clients.values().parallelStream()
-            .filter(client -> client.socket == webSocket)
-            .map(client -> client.id)
-            .findFirst()
-            .orElse(-1L);
+                .filter(client -> client.socket == webSocket)
+                .map(client -> client.id)
+                .findFirst()
+                .orElse(-1L);
     }
 
     public void changeClientConnectionStatus (WebSocket webSocket, boolean status) {
         clients.get(webSocket).status = status;
     }
+
     public boolean getClientConnectionStatus (WebSocket webSocket) {
         return clients.get(webSocket).status;
     }

@@ -7,11 +7,11 @@ import java.sql.SQLException;
 public class PermissionOperator extends DBOperator {
     public static boolean validateToken (long id, String user_token) {
         String sql = """
-            SELECT token
-            FROM users.tokens
-            WHERE
-                client = ?
-        """;
+                    SELECT token
+                    FROM users.tokens
+                    WHERE
+                        client = ?
+                """;
         PreparedStatement stmt;
 
         try {

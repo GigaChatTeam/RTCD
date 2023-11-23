@@ -10,6 +10,7 @@ public abstract class DBOperator {
     static String password = "password";
 
     static Connection conn;
+
     static {
         try {
             conn = DriverManager.getConnection(url, user, password);

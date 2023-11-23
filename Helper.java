@@ -9,11 +9,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Helper {
+    @Contract("_ -> new")
+    public static @NotNull ConnectionPath parseURI (@NotNull String uri) throws InvalidURIException {
+        int index = uri.indexOf('?');
+        if (index == -1) {
+            throw new InvalidURIException();
+        }
+
+        String path = uri.substring(0, index);
+        String query = uri.substring(index + 1);
+
+        String[] pathParts = path.split("/");
+
+        Map<String, String> params = new HashMap<>();
+        for (String param : query.split("&")) {
+            String[] entry = param.split("=");
+            params.put(entry[0], entry[1]);
+        }
+
+        return new Helper.ConnectionPath(pathParts, params);
+    }
+
     static final class Constants {
         static final SimpleDateFormat timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     }
 
-    public static class InvalidURIException extends Exception {    }
+    public static class InvalidURIException extends Exception {
+
+    }
 
     public static class ConnectionPath {
         String[] pathParts;
@@ -49,26 +72,5 @@ public class Helper {
     public static class TTokenQueryWrapper {
         String intention;
         Any data;
-    }
-
-    @Contract("_ -> new")
-    public static @NotNull ConnectionPath parseURI (@NotNull String uri) throws InvalidURIException {
-        int index = uri.indexOf('?');
-        if (index == -1) {
-            throw new InvalidURIException();
-        }
-
-        String path = uri.substring(0, index);
-        String query = uri.substring(index + 1);
-
-        String[] pathParts = path.split("/");
-
-        Map<String, String> params = new HashMap<>();
-        for (String param : query.split("&")) {
-            String[] entry = param.split("=");
-            params.put(entry[0], entry[1]);
-        }
-
-        return new Helper.ConnectionPath(pathParts, params);
     }
 }

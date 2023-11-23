@@ -5,9 +5,11 @@ import java.util.Objects;
 
 public class CommandsPatterns {
     public static class System {
-        public static class Connection {
-            @JsonProperty(required = true)
-            boolean status;
+        public static class ConnectionParameters {
+            static class ConnectionControl {
+                @JsonProperty(required = true)
+                boolean status;
+            }
         }
 
         static class TTokens {

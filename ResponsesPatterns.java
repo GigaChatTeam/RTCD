@@ -6,9 +6,9 @@ import dbexecutors.SystemExecutor;
 import static java.lang.String.join;
 
 public class ResponsesPatterns {
-    static class System {
-        static class ServerErrors {
-            static class InternalError {
+    public static class System {
+        public static class ServerErrors {
+            public static class InternalError {
                 @JsonIgnore
                 static final String intention = "88";
 
@@ -17,7 +17,7 @@ public class ResponsesPatterns {
                 }
             }
 
-            static class OutdatedServer {
+            public static class OutdatedServer {
                 @JsonIgnore
                 static final String intention = "89";
 
@@ -27,9 +27,9 @@ public class ResponsesPatterns {
             }
         }
 
-        static class ClientErrors {
-            static class DataErrors {
-                static class NotValidIntentions {
+        public static class ClientErrors {
+            public static class DataErrors {
+                public static class NotValidIntentions {
                     static final String intention = "210";
 
                     String serialize (String controlHash) {
@@ -37,7 +37,7 @@ public class ResponsesPatterns {
                     }
                 }
 
-                static class NotValidData {
+                public static class NotValidData {
                     static final String intention = "210";
 
                     String serialize (String controlHash) {
@@ -46,8 +46,8 @@ public class ResponsesPatterns {
                 }
             }
 
-            static class AccessErrors {
-                static class AccessDenied {
+            public static class AccessErrors {
+                public static class AccessDenied {
                     @JsonIgnore
                     static final String intention = "89";
 
@@ -56,7 +56,7 @@ public class ResponsesPatterns {
                     }
                 }
 
-                static class NotFound {
+                public static class NotFound {
                     @JsonIgnore
                     static final String intention = "89";
 
@@ -67,8 +67,8 @@ public class ResponsesPatterns {
             }
         }
 
-        static class ConnectionParameters {
-            static class ConnectionControl {
+        public static class ConnectionParameters {
+            public static class ConnectionControl {
                 @JsonIgnore
                 static final String intention = "88";
                 boolean status;
@@ -83,8 +83,8 @@ public class ResponsesPatterns {
             }
         }
 
-        static class TTokens {
-            static class Generate {
+        public static class TTokens {
+            public static class Generate {
                 @JsonIgnore
                 static final String intention = "";
 
@@ -104,9 +104,9 @@ public class ResponsesPatterns {
         }
     }
 
-    static class Channels {
-        static class System {
-            static class Control {
+    public static class Channels {
+        public static class System {
+            public static class Control {
                 public static class Create {
                     @JsonIgnore
                     static final String intention = "";
@@ -137,8 +137,8 @@ public class ResponsesPatterns {
                 }
             }
 
-            static class Notification {
-                static class AddListening {
+            public static class Notification {
+                public static class AddListening {
                     @JsonIgnore
                     static final String intention = "B1";
 
@@ -153,10 +153,29 @@ public class ResponsesPatterns {
                     }
                 }
 
-                String serialize (String hash) {
-                    return STR. "\{ join("-", intention) }%\{ hash }%\{ JsonStream.serialize(this) }" ;
+                public static class RemoveListening {
+                    @JsonIgnore
+                    static final String intention = "B2";
+
+                    long channel;
+
+                    RemoveListening (long channel) {
+                        this.channel = channel;
+                    }
+
+                    String serialize (String controlHash) {
+                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                    }
                 }
             }
+        }
+
+        public static class Administration {
+
+        }
+
+        public static class User {
+
         }
     }
 }
