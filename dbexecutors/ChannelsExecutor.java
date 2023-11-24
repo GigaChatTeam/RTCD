@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Instant;
 
 public class ChannelsExecutor extends DBOperator {
     public static long create (long owner, String title) throws SQLException {
@@ -120,42 +119,12 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Messages {
-        public static @NotNull Timestamp postMessage (long author, long channel, @NotNull String text) throws SQLException, AccessDenied {
-            String sql = """
-                        SELECT channels.post_message_new(?, ?, ?)
-                    """;
-            PreparedStatement stmt;
-
-            stmt = conn.prepareStatement(sql);
-            stmt.setLong(1, author);
-            stmt.setLong(2, channel);
-            stmt.setString(3, text);
-
-            ResultSet rs = stmt.executeQuery();
-
-            rs.next();
-
-            Timestamp timestamp = rs.getTimestamp(1);
-
-            if (timestamp != null) return timestamp;
-            else throw new AccessDenied();
+        public static Timestamp post (long author, long channel, @NotNull String text, long[][] media, long[] audio) {
+            return null;
         }
 
-        public static void editMessage (long channel, Timestamp posted, String text) throws SQLException {
-            String sql = """
-                        INSERT INTO channels.messages_data (channel, original, edited, data)
-                        VALUES
-                            (%s, %s, %s, %s)
-                    """;
-            PreparedStatement stmt;
+        public static void edit (long author, long channel, Timestamp posted, String text, long[][] media, long[] audio) {
 
-            stmt = conn.prepareStatement(sql);
-            stmt.setLong(1, channel);
-            stmt.setTimestamp(2, posted);
-            stmt.setTimestamp(3, Timestamp.from(Instant.ofEpochSecond(System.currentTimeMillis())));
-            stmt.setString(4, text);
-
-            stmt.executeQuery();
         }
     }
 
@@ -185,7 +154,7 @@ public class ChannelsExecutor extends DBOperator {
                 if (newDescription.length() < 257) throw new NotValid();
 
                 String sql = """
-                        SELECT channels.change_description(%s, %s, %s)
+                            SELECT channels.change_description(%s, %s, %s)
                         """;
                 PreparedStatement stmt;
 

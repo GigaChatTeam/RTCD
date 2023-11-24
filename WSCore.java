@@ -86,39 +86,45 @@ class WSCore extends WebSocketServer {
 
         try {
             switch (cmd) {
-//                case CHANNELS_USERS_MESSAGES_POST_NEW -> {
-//                    if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel))
-//                        throw new AccessDenied();
-//
-//                    clients.sendCommandToChannel(((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-//                            new ResponsesPatterns.Channels.Messages.Post.New((CommandsPatterns.Channels.Messages.Post.New) packet.postData,
-//                                    ChannelsExecutor.Messages.postMessage(
-//                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).author,
-//                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).channel,
-//                                            ((CommandsPatterns.Channels.Messages.Post.New) packet.postData).text)).serialize(packet.hash));
-//                }
+                case CHANNELS_USERS_MESSAGES_POST_NEW -> {
+                    if (!clients.isUserInChannel(webSocket,
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
+                    ) throw new AccessDenied();
+
+                    switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
+                        case "TEXT" -> {
+                            // TODO create SQL to text messages
+                        }
+                        case "VOICE" -> {
+                            // TODO create SQL to voice messages
+                        }
+                        case "VIDEO" -> {
+                            // TODO create SQL to video messages
+                        }
+                    }
+                }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
                     if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
                             clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.AddListening) packet.postData).channel)
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel)
                     ) throw new AccessDenied();
 
                     clients.addListeningClientToChannel(
                             clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.AddListening) packet.postData).channel);
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel);
 
                     webSocket.send(
                             new ResponsesPatterns.Channels.System.Notification.AddListening(
-                                    ((CommandsPatterns.Channels.System.Notification.AddListening) packet.postData).channel).serialize(packet.hash));
+                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_LISTENING_REMOVE -> {
                     clients.removeListeningClientFromChannel(
                             clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.RemoveListening) packet.postData).channel);
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
 
                     webSocket.send(
                             new ResponsesPatterns.Channels.System.Notification.RemoveListening(
-                                    ((CommandsPatterns.Channels.System.Notification.RemoveListening) packet.postData).channel).serialize(packet.hash));
+                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_CREATE -> webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(
                         ChannelsExecutor.create(
@@ -165,7 +171,7 @@ class WSCore extends WebSocketServer {
                         case HLB_CHANNELS_USERS_DOWNLOAD_PERMISSIONS -> {
                             if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
                                     clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Messages) packet.postData).channel)
+                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Permissions) packet.postData).channel)
                             ) throw new AccessDenied();
 
                             webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(

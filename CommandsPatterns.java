@@ -1,7 +1,9 @@
 import com.jsoniter.annotation.JsonProperty;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.UUID;
 
 public class CommandsPatterns {
     public static class System {
@@ -72,15 +74,17 @@ public class CommandsPatterns {
                 }
             }
 
-            static class Notification {
-                static class AddListening {
-                    @JsonProperty(required = true)
-                    long channel;
-                }
+            public static class Notification {
+                static class Listening {
+                    static class Add {
+                        @JsonProperty(required = true)
+                        long channel;
+                    }
 
-                static class RemoveListening {
-                    @JsonProperty(required = true)
-                    long channel;
+                    static class Remove {
+                        @JsonProperty(required = true)
+                        long channel;
+                    }
                 }
             }
         }
@@ -139,11 +143,29 @@ public class CommandsPatterns {
                     }
                 }
             }
+
+            public static class Users {
+
+            }
         }
 
-        public static class Delete {
-            long owner;
-            long channel;
+        public static class User {
+            public static class Messages {
+                public static class Post {
+                    public static class New {
+                        @JsonProperty(required = true)
+                        long channel;
+                        @JsonProperty(required = true)
+                        String type;
+
+                        String text;
+                        UUID alias;
+                        Timestamp answer;
+                        long[][] media;
+                        long[] files;
+                    }
+                }
+            }
         }
     }
 }

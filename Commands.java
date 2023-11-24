@@ -24,8 +24,8 @@ public enum Commands {
     // Changing external settings
     CHANNELS_ADMINISTRATION_SETTINGS("B5", null),
     // Channel listening control
-    CHANNELS_SYSTEM_LISTENING_ADD("B1", null),
-    CHANNELS_SYSTEM_LISTENING_REMOVE("B0", null),
+    CHANNELS_SYSTEM_LISTENING_ADD("B1", CommandsPatterns.Channels.System.Notification.Listening.Add.class),
+    CHANNELS_SYSTEM_LISTENING_REMOVE("B0", CommandsPatterns.Channels.System.Notification.Listening.Remove.class),
     // Channel invitations
     CHANNELS_USERS_INVITATIONS_CREATE("175", null),
     CHANNELS_USERS_INVITATIONS_DELETE("174", null),
@@ -33,7 +33,7 @@ public enum Commands {
     CHANNELS_USERS_JOIN("171", null),
     CHANNELS_USERS_LEAVE("170", null),
     // Working with messages in channels
-    CHANNELS_USERS_MESSAGES_POST_NEW("5CF", null),
+    CHANNELS_USERS_MESSAGES_POST_NEW("5CF", CommandsPatterns.Channels.User.Messages.Post.New.class),
     CHANNELS_USERS_MESSAGES_POST_FORWARD_MESSAGE("2E70", null),
     CHANNELS_USERS_MESSAGES_POST_FORWARD_NEWS("2E71", null),
     CHANNELS_USERS_MESSAGES_POST_FORWARD_TWIG("2E72", null),
