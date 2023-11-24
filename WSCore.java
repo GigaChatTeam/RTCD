@@ -89,12 +89,29 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
                     if (!clients.isUserInChannel(webSocket,
                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
-                    ) throw new AccessDenied();
+                        || !clients.isUserCanPostToChannel(webSocket,
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                        throw new AccessDenied();
+
+
+                    clients.sendCommandToChannel(
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
 
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
-                        case "TEXT" -> {
-                            // TODO create SQL to text messages
-                        }
+                        case "TEXT" -> clients.sendCommandToChannel(
+                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                new ResponsesPatterns.Channels.User.Messages.Post.New(
+                                        ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
+                                        ChannelsExecutor.Messages.post(
+                                                clients.getID(webSocket),
+                                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
+                                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
+                                                null, null
+                        ), null, null).serialize(packet.hash));
                         case "VOICE" -> {
                             // TODO create SQL to voice messages
                         }
@@ -194,7 +211,10 @@ class WSCore extends WebSocketServer {
         } /* catch (NotFound e) {
             if (Starter.DEBUG >= 2) e.printStackTrace();
             webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.NotFound().serialize(packet.hash));
-        } */
+        } */ catch (Throwable e) {
+            System.out.println("----- Not handling exception -----");
+            e.printStackTrace();
+        }
     }
 
     @Override

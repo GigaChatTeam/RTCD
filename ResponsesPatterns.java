@@ -3,6 +3,9 @@ import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
 import dbexecutors.SystemExecutor;
 
+import java.sql.Timestamp;
+import java.util.UUID;
+
 import static java.lang.String.join;
 
 public class ResponsesPatterns {
@@ -174,8 +177,49 @@ public class ResponsesPatterns {
 
         }
 
-        public static class User {
 
+        public static class User {
+            public static class Messages {
+                public static class Post {
+                    public static class New {
+                        @JsonIgnore
+                        static final String intention = "5CF";
+
+                        long channel;
+                        long author;
+                        String type;
+
+                        String text;
+                        UUID alias;
+                        Timestamp posted;
+                        Timestamp answer;
+                        long[][] media;
+                        long[] files;
+
+                        New (long channel, long author, String text, Timestamp posted, long[][] media, long[] files) {
+                            this.channel = channel;
+                            this.author = author;
+                            this.text = text;
+                            this.posted = posted;
+                            this.media = media;
+                            this.files = files;
+                        }
+
+                        New (long channel, UUID alias, String text, Timestamp posted, long[][] media, long[] files) {
+                            this.channel = channel;
+                            this.alias = alias;
+                            this.text = text;
+                            this.posted = posted;
+                            this.media = media;
+                            this.files = files;
+                        }
+
+                        String serialize (String controlHash) {
+                            return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                        }
+                    }
+                }
+            }
         }
     }
 }

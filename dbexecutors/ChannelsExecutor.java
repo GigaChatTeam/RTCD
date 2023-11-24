@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.UUID;
 
 public class ChannelsExecutor extends DBOperator {
     public static long create (long owner, String title) throws SQLException {
@@ -119,8 +120,26 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Messages {
-        public static Timestamp post (long author, long channel, @NotNull String text, long[][] media, long[] audio) {
-            return null;
+        public static Timestamp post (long author, long channel, UUID alias, @NotNull String text, Long[][] media, Long[] audio) throws SQLException {
+            String sql = """
+                        SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
+                    """;
+            PreparedStatement stmt;
+
+            stmt = conn.prepareStatement(sql);
+
+            stmt.setLong(1, author);
+            stmt.setObject(2, alias);
+            stmt.setLong(3, channel);
+            stmt.setString(4, text);
+            stmt.setArray(5, conn.createArrayOf("BIGINT", media));
+            stmt.setArray(6, conn.createArrayOf("BIGINT", audio));
+
+            ResultSet rs = stmt.executeQuery();
+
+            rs.next();
+
+            return rs.getTimestamp(1);
         }
 
         public static void edit (long author, long channel, Timestamp posted, String text, long[][] media, long[] audio) {
