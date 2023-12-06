@@ -193,10 +193,10 @@ public class ResponsesPatterns {
                         UUID alias;
                         Timestamp posted;
                         Timestamp answer;
-                        long[][] media;
-                        long[] files;
+                        Long[][] media;
+                        Long[] files;
 
-                        New (long channel, long author, String text, Timestamp posted, long[][] media, long[] files) {
+                        New (long channel, long author, String text, Timestamp posted, Long[][] media, Long[] files) {
                             this.channel = channel;
                             this.author = author;
                             this.text = text;
@@ -205,7 +205,7 @@ public class ResponsesPatterns {
                             this.files = files;
                         }
 
-                        New (long channel, UUID alias, String text, Timestamp posted, long[][] media, long[] files) {
+                        New (long channel, UUID alias, String text, Timestamp posted, Long[][] media, Long[] files) {
                             this.channel = channel;
                             this.alias = alias;
                             this.text = text;

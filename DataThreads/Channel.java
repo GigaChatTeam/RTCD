@@ -12,11 +12,6 @@ public class Channel {
     }
 
     @Override
-    public String toString () {
-        return STR. "Channel \{ id }, can user post: \{ canPost }";
-    }
-
-    @Override
     public boolean equals (Object obj) {
         if (obj instanceof Channel) {
             return Objects.equals(((Channel) obj).id, id);

@@ -62,15 +62,13 @@ public class CommandsPatterns {
                 public static class Create {
                     @JsonProperty(required = true)
                     String title;
-                    @JsonProperty(required = true)
-                    String description = "";
+                    String description;
                 }
 
                 public static class Delete {
                     @JsonProperty(required = true)
                     long id;
-                    @JsonProperty(required = true)
-                    String reason = "";
+                    String reason;
                 }
             }
 
@@ -161,9 +159,22 @@ public class CommandsPatterns {
                         String text;
                         UUID alias;
                         Timestamp answer;
-                        long[][] media;
-                        long[] files;
+                        Long[][] media;
+                        Long[] files;
                     }
+                }
+            }
+
+            public static class Presence {
+                public static class Join {
+                    @JsonProperty(required = true)
+                    String invitation;
+
+                }
+
+                public static class Leave {
+                    @JsonProperty(required = true)
+                    long channel;
                 }
             }
         }

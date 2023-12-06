@@ -120,7 +120,7 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Messages {
-        public static Timestamp post (long author, long channel, UUID alias, @NotNull String text, Long[][] media, Long[] audio) throws SQLException {
+        public static Timestamp post (long author, long channel, UUID alias, @NotNull String text, Long[][] media, Long[] files) throws SQLException {
             String sql = """
                         SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
                     """;
@@ -133,7 +133,7 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setLong(3, channel);
             stmt.setString(4, text);
             stmt.setArray(5, conn.createArrayOf("BIGINT", media));
-            stmt.setArray(6, conn.createArrayOf("BIGINT", audio));
+            stmt.setArray(6, conn.createArrayOf("BIGINT", files));
 
             ResultSet rs = stmt.executeQuery();
 

@@ -30,8 +30,8 @@ public enum Commands {
     CHANNELS_USERS_INVITATIONS_CREATE("175", null),
     CHANNELS_USERS_INVITATIONS_DELETE("174", null),
     // Presence in channels
-    CHANNELS_USERS_JOIN("171", null),
-    CHANNELS_USERS_LEAVE("170", null),
+    CHANNELS_USERS_JOIN("171", CommandsPatterns.Channels.User.Presence.Join.class),
+    CHANNELS_USERS_LEAVE("170", CommandsPatterns.Channels.User.Presence.Leave.class),
     // Working with messages in channels
     CHANNELS_USERS_MESSAGES_POST_NEW("5CF", CommandsPatterns.Channels.User.Messages.Post.New.class),
     CHANNELS_USERS_MESSAGES_POST_FORWARD_MESSAGE("2E70", null),
@@ -56,6 +56,6 @@ public enum Commands {
         return Arrays.stream(Commands.values())
                 .filter(v -> Objects.equals(v.intents, intents))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow();
     }
 }
