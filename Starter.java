@@ -1,5 +1,6 @@
 public class Starter {
     static byte DEBUG = 5;
+    static int port = 8080;
 
     static {
         JsonIteratorExtra.UUIDSupport.registerModule();
@@ -7,7 +8,6 @@ public class Starter {
     }
 
     public static void main (String[] args) {
-        int port = 8080;
         WSCore server = new WSCore(port);
         server.start();
     }

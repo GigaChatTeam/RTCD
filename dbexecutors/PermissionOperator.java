@@ -4,10 +4,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static dbexecutors.Helper.verifierBCrypt;
+
 public class PermissionOperator extends DBOperator {
-    public static boolean validateToken (long id, String user_token) {
+    public static boolean validateToken (long id, String secret, String key) {
         String sql = """
-                    SELECT token
+                    SELECT
+                        secret,
+                        key
                     FROM users.tokens
                     WHERE
                         client = ?
@@ -21,14 +25,14 @@ public class PermissionOperator extends DBOperator {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                if (Helper.verifierBCrypt(user_token, rs.getString(1).getBytes())) return true;
+                if (
+                        verifierBCrypt(secret, rs.getString(1).getBytes()) &&
+                        verifierBCrypt(key, rs.getString(2).getBytes())
+                ) return true;
             }
-
-            stmt.close();
-            rs.close();
-
             return false;
         } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }

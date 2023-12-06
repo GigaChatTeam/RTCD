@@ -8,7 +8,7 @@ import java.util.Date;
 public class SystemExecutor extends DBOperator {
     public static void logAuthentication (long client, String key, String agent, boolean status) throws SQLException {
         String sql = """
-                    INSERT INTO users.logins (client, key, login, agent, status)
+                    INSERT INTO users.logins (client, key, login, agent, successfully)
                     VALUES
                         (?, ?, ?, ?, ?)
                 """;

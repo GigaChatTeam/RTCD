@@ -13,8 +13,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
-import static java.lang.Long.parseLong;
-
 
 class WSCore extends WebSocketServer {
     private final Clients clients = new Clients();
@@ -42,28 +40,17 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        if (connectParams.params.get("id") != null && connectParams.params.get("token") != null) {
-            if (PermissionOperator.validateToken(parseLong(connectParams.params.get("id")), connectParams.params.get("token"))) {
-                clients.addClient(new Client(webSocket, parseLong(connectParams.params.get("id")), connectParams.params.get("token")));
-
-                webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
-
-                clients.changeClientConnectionStatus(webSocket, true);
-            } else {
-                webSocket.close(1401, "InvalidAuthorizationData");
-                return;
-            }
+        if (PermissionOperator.validateToken(connectParams.client, connectParams.secret, connectParams.key)) {
+            clients.addClient(new Client(webSocket, connectParams.client, connectParams.key));
+            webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
+            clients.changeClientConnectionStatus(webSocket, true);
         } else {
-            webSocket.close(1406, "InsufficientData");
+            webSocket.close(1401, "InvalidAuthorizationData");
             return;
         }
 
         try {
-            SystemExecutor.logAuthentication(
-                    parseLong(connectParams.params.get("id")),
-                    Helper.SHA512(connectParams.params.get("key")),
-                    null
-            );
+            SystemExecutor.logAuthentication(connectParams.client, Helper.SHA512(connectParams.key), null);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -105,38 +92,18 @@ class WSCore extends WebSocketServer {
         try {
             switch (cmd) {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
-                    if (!clients.isUserInChannel(webSocket,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
-                        || !clients.isUserCanPostToChannel(webSocket,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                    if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel) || !clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                         throw new AccessDenied();
 
 
-                    clients.sendCommandToChannel(
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
+                    clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
 
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
                         case "TEXT" -> {
-                            if (!clients.isUserCanPostToChannel(
-                                    webSocket,
-                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                            if (!clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                                 throw new AccessDenied();
 
-                            clients.sendCommandToChannel(
-                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                    new ResponsesPatterns.Channels.User.Messages.Post.New(
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                            clients.getID(webSocket),
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                            ChannelsExecutor.Messages.post(
-                                                    clients.getID(webSocket),
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                                    null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files),
-                                            null,
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
+                            clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, new ResponsesPatterns.Channels.User.Messages.Post.New(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, ChannelsExecutor.Messages.post(clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files), null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
                         }
                         case "VOICE" -> {
                             // TODO create SQL to voice messages
@@ -148,33 +115,20 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel)
-                    ) throw new AccessDenied();
+                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
+                        throw new AccessDenied();
 
-                    clients.addListeningClientToChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
+                    clients.addListeningClientToChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
 
-                    webSocket.send(
-                            new ResponsesPatterns.Channels.System.Notification.AddListening(
-                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.AddListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_LISTENING_REMOVE -> {
-                    clients.removeListeningClientFromChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
+                    clients.removeListeningClientFromChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
 
-                    webSocket.send(
-                            new ResponsesPatterns.Channels.System.Notification.RemoveListening(
-                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.RemoveListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
-                case CHANNELS_SYSTEM_CREATE -> webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(
-                        ChannelsExecutor.create(
-                                clients.getID(webSocket),
-                                ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
-                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
+                case CHANNELS_SYSTEM_CREATE ->
+                        webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(ChannelsExecutor.create(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case SYSTEM_TTOKENS_GENERATE -> {
 
                 }
