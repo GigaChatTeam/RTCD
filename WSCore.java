@@ -12,9 +12,8 @@ import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import static java.lang.Long.parseLong;
 
 
 class WSCore extends WebSocketServer {
@@ -44,14 +43,30 @@ class WSCore extends WebSocketServer {
         }
 
         if (connectParams.params.get("id") != null && connectParams.params.get("token") != null) {
-            if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
-                clients.addClient(new Client(webSocket, Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token")));
+            if (PermissionOperator.validateToken(parseLong(connectParams.params.get("id")), connectParams.params.get("token"))) {
+                clients.addClient(new Client(webSocket, parseLong(connectParams.params.get("id")), connectParams.params.get("token")));
 
                 webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
 
                 clients.changeClientConnectionStatus(webSocket, true);
-            } else webSocket.close(1401, "InvalidAuthorizationData");
-        } else webSocket.close(1406, "InsufficientData");
+            } else {
+                webSocket.close(1401, "InvalidAuthorizationData");
+                return;
+            }
+        } else {
+            webSocket.close(1406, "InsufficientData");
+            return;
+        }
+
+        try {
+            SystemExecutor.logAuthentication(
+                    parseLong(connectParams.params.get("id")),
+                    Helper.SHA512(connectParams.params.get("key")),
+                    null
+            );
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -161,35 +176,7 @@ class WSCore extends WebSocketServer {
                                 ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
                         ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case SYSTEM_TTOKENS_GENERATE -> {
-                    Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
-                    CommandsPatterns.System.TTokens.Generate ttokenQuery = CommandsPatterns.System.TTokens.Generate.byIntents(wrapper.intention);
-                    Object queryData = wrapper.data.as(ttokenQuery.pattern);
 
-                    switch (ttokenQuery) {
-                        case HLB_CHANNELS_USERS_DOWNLOAD ->
-                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
-                                        SystemExecutor.Channels.History.loadChannels(clients.getID(webSocket))).serialize(packet.hash));
-                        case HLB_CHANNELS_USERS_DOWNLOAD_MESSAGES -> {
-                            if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Messages) packet.postData).channel)
-                            ) throw new AccessDenied();
-
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Messages) queryData).channel)).serialize(packet.hash));
-                        }
-                        case HLB_CHANNELS_USERS_DOWNLOAD_PERMISSIONS -> {
-                            if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Permissions) packet.postData).channel)
-                            ) throw new AccessDenied();
-
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Permissions) queryData).channel)).serialize(packet.hash));
-                        }
-                    }
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }

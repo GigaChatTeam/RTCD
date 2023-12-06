@@ -1,12 +1,8 @@
 import com.jsoniter.annotation.JsonIgnore;
-import com.jsoniter.annotation.JsonProperty;
 import com.jsoniter.output.JsonStream;
-import dbexecutors.SystemExecutor;
 
 import java.sql.Timestamp;
 import java.util.UUID;
-
-import static java.lang.String.join;
 
 public class ResponsesPatterns {
     public static class System {
@@ -78,26 +74,6 @@ public class ResponsesPatterns {
 
                 ConnectionControl (boolean status) {
                     this.status = status;
-                }
-
-                String serialize (String controlHash) {
-                    return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
-                }
-            }
-        }
-
-        public static class TTokens {
-            public static class Generate {
-                @JsonIgnore
-                static final String intention = "";
-
-                @JsonProperty("intention")
-                String intentions;
-                String token;
-
-                Generate (SystemExecutor.Channels.Token token) {
-                    this.intentions = join("-", token.intention);
-                    this.token = token.token;
                 }
 
                 String serialize (String controlHash) {
