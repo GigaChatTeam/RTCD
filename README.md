@@ -8,12 +8,12 @@ Operating on WebSockets, written in Java.
 
 Entry point
 
-* WS `ws://<?>/`
+* WS `ws://<POINT>?<TOKEN>`
 
 Arguments
 
-* `id`: int64 - user ID to log in
-* `token`: str - token for user authorization
+* `POINT`: `STRING` - connection address
+* `TOKEN`: `STRING` - full user token
 
 Result
 
