@@ -27,7 +27,7 @@ public class Helper {
 
         try {
             return new ConnectionPath(elements[0], Long.parseLong(elements[1]), tokens[0], tokens[1]);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             throw new InvalidURIException();
         }
     }
@@ -46,7 +46,7 @@ public class Helper {
         String secret;
         String key;
 
-        public ConnectionPath (String type, long client, String secret, String key) {
+        public ConnectionPath (@NotNull String type, long client, String secret, String key) {
             this.type = type.toUpperCase();
             this.client = client;
             this.secret = secret;
