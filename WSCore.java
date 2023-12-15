@@ -12,9 +12,6 @@ import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
-import java.util.Objects;
-
-import static java.util.Objects.requireNonNull;
 
 
 class WSCore extends WebSocketServer {
@@ -43,15 +40,20 @@ class WSCore extends WebSocketServer {
             return;
         }
 
-        if (connectParams.params.get("id") != null && connectParams.params.get("token") != null) {
-            if (PermissionOperator.validateToken(Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token"))) {
-                clients.addClient(new Client(webSocket, Integer.parseInt(connectParams.params.get("id")), connectParams.params.get("token")));
+        if (PermissionOperator.validateToken(connectParams.client, connectParams.secret, connectParams.key)) {
+            clients.addClient(new Client(webSocket, connectParams.client, connectParams.key));
+            webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
+            clients.changeClientConnectionStatus(webSocket, true);
+        } else {
+            webSocket.close(1401, "InvalidAuthorizationData");
+            return;
+        }
 
-                webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
-
-                clients.changeClientConnectionStatus(webSocket, true);
-            } else webSocket.close(1401, "InvalidAuthorizationData");
-        } else webSocket.close(1406, "InsufficientData");
+        try {
+            SystemExecutor.logAuthentication(connectParams.client, Helper.SHA512(connectParams.key), null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -90,38 +92,18 @@ class WSCore extends WebSocketServer {
         try {
             switch (cmd) {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
-                    if (!clients.isUserInChannel(webSocket,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
-                        || !clients.isUserCanPostToChannel(webSocket,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                    if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel) || !clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                         throw new AccessDenied();
 
 
-                    clients.sendCommandToChannel(
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
+                    clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
 
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
                         case "TEXT" -> {
-                            if (!clients.isUserCanPostToChannel(
-                                    webSocket,
-                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                            if (!clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                                 throw new AccessDenied();
 
-                            clients.sendCommandToChannel(
-                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                    new ResponsesPatterns.Channels.User.Messages.Post.New(
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                            clients.getID(webSocket),
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                            ChannelsExecutor.Messages.post(
-                                                    clients.getID(webSocket),
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                                    null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files),
-                                            null,
-                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
+                            clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, new ResponsesPatterns.Channels.User.Messages.Post.New(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, ChannelsExecutor.Messages.post(clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files), null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
                         }
                         case "VOICE" -> {
                             // TODO create SQL to voice messages
@@ -133,63 +115,22 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel)
-                    ) throw new AccessDenied();
+                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
+                        throw new AccessDenied();
 
-                    clients.addListeningClientToChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
+                    clients.addListeningClientToChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
 
-                    webSocket.send(
-                            new ResponsesPatterns.Channels.System.Notification.AddListening(
-                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.AddListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_LISTENING_REMOVE -> {
-                    clients.removeListeningClientFromChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
+                    clients.removeListeningClientFromChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
 
-                    webSocket.send(
-                            new ResponsesPatterns.Channels.System.Notification.RemoveListening(
-                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.RemoveListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
-                case CHANNELS_SYSTEM_CREATE -> webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(
-                        ChannelsExecutor.create(
-                                clients.getID(webSocket),
-                                ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
-                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
+                case CHANNELS_SYSTEM_CREATE ->
+                        webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(ChannelsExecutor.create(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case SYSTEM_TTOKENS_GENERATE -> {
-                    Helper.TTokenQueryWrapper wrapper = (Helper.TTokenQueryWrapper) packet.postData;
-                    CommandsPatterns.System.TTokens.Generate ttokenQuery = CommandsPatterns.System.TTokens.Generate.byIntents(wrapper.intention);
-                    Object queryData = wrapper.data.as(ttokenQuery.pattern);
 
-                    switch (ttokenQuery) {
-                        case HLB_CHANNELS_USERS_DOWNLOAD ->
-                                webSocket.send(new ResponsesPatterns.System.TTokens.Generate(
-                                        SystemExecutor.Channels.History.loadChannels(clients.getID(webSocket))).serialize(packet.hash));
-                        case HLB_CHANNELS_USERS_DOWNLOAD_MESSAGES -> {
-                            if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Messages) packet.postData).channel)
-                            ) throw new AccessDenied();
-
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Messages) queryData).channel)).serialize(packet.hash));
-                        }
-                        case HLB_CHANNELS_USERS_DOWNLOAD_PERMISSIONS -> {
-                            if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Permissions) packet.postData).channel)
-                            ) throw new AccessDenied();
-
-                            webSocket.send(new ResponsesPatterns.System.TTokens.Generate(SystemExecutor.Channels.History.loadMessagesHistory(
-                                    clients.getID(webSocket),
-                                    ((CommandsPatterns.System.TTokens.Patterns.HLB.Channels.Users.Permissions) queryData).channel)).serialize(packet.hash));
-                        }
-                    }
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }

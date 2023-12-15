@@ -124,9 +124,8 @@ public class ChannelsExecutor extends DBOperator {
             String sql = """
                         SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
                     """;
-            PreparedStatement stmt;
 
-            stmt = conn.prepareStatement(sql);
+            PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setLong(1, author);
             stmt.setObject(2, alias);
@@ -155,9 +154,8 @@ public class ChannelsExecutor extends DBOperator {
                 String sql = """
                             SELECT channels.change_title(%s, %s, %s)
                         """;
-                PreparedStatement stmt;
 
-                stmt = conn.prepareStatement(sql);
+                PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setLong(1, user);
                 stmt.setLong(2, channel);
                 stmt.setString(3, newTitle);
@@ -175,9 +173,8 @@ public class ChannelsExecutor extends DBOperator {
                 String sql = """
                             SELECT channels.change_description(%s, %s, %s)
                         """;
-                PreparedStatement stmt;
 
-                stmt = conn.prepareStatement(sql);
+                PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setLong(1, user);
                 stmt.setLong(2, channel);
                 stmt.setString(3, newDescription);

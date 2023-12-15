@@ -3,10 +3,11 @@ import com.jsoniter.any.Any;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Helper {
     @Contract("_ -> new")
@@ -16,18 +17,19 @@ public class Helper {
             throw new InvalidURIException();
         }
 
-        String path = uri.substring(0, index);
-        String query = uri.substring(index + 1);
+        String path = uri.substring(index + 1);
 
-        String[] pathParts = path.split("/");
+        if (!(path.chars().filter(c -> c == '.').count() == 2 || path.chars().filter(c -> c == '%').count() == 1))
+            throw new InvalidURIException();
 
-        Map<String, String> params = new HashMap<>();
-        for (String param : query.split("&")) {
-            String[] entry = param.split("=");
-            params.put(entry[0], entry[1]);
+        String[] elements = path.split("\\.");
+        String[] tokens = elements[2].split("%");
+
+        try {
+            return new ConnectionPath(elements[0], Long.parseLong(elements[1]), tokens[0], tokens[1]);
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            throw new InvalidURIException();
         }
-
-        return new Helper.ConnectionPath(pathParts, params);
     }
 
     static final class Constants {
@@ -39,12 +41,23 @@ public class Helper {
     }
 
     public static class ConnectionPath {
-        String[] pathParts;
-        Map<String, String> params;
+        String type;
+        long client;
+        String secret;
+        String key;
 
-        public ConnectionPath (String[] pathParts, Map<String, String> params) {
-            this.pathParts = pathParts;
-            this.params = params;
+        public ConnectionPath (@NotNull String type, long client, String secret, String key) {
+            this.type = type.toUpperCase();
+            this.client = client;
+            this.secret = secret;
+            this.key = key;
+        }
+
+        public ConnectionPath (long client, String secret, String key) {
+            this.type = "USER";
+            this.client = client;
+            this.secret = secret;
+            this.key = key;
         }
     }
 
@@ -72,5 +85,24 @@ public class Helper {
     public static class TTokenQueryWrapper {
         String intention;
         Any data;
+    }
+
+    static String SHA512 (String string) {
+        MessageDigest md;
+
+        try {
+            md = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            return string;
+        }
+
+        byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+
+        for (byte aByte : bytes) {
+            sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString();
     }
 }
