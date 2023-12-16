@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Scanner;
 
 public class Starter {
     static volatile boolean running = false;
@@ -29,8 +30,23 @@ public class Starter {
             System.out.println("WSCore thread has been stopped");
         }
 
-        authorizer.stop();
+        authorizer.stop( );
         System.out.println("HTTP Authorizer thread has been stopped");
+    });
+
+    static Thread console = new Thread(() -> {
+        Scanner scanner = new Scanner(System.in);
+
+        while (running) {
+            String command = scanner.nextLine( );
+            if (!command.startsWith("/")) {
+                continue;
+            }
+
+            switch (command) {
+                case "/stop" -> running = false;
+            }
+        }
     });
 
     static {
@@ -47,6 +63,7 @@ public class Starter {
             }
 
             config = new Ini(file);
+
             DEBUG = config.get("server", "debug", byte.class);
 
             wsCorePort = config.get("ws-core", "port", int.class);
@@ -63,6 +80,7 @@ public class Starter {
         wsCore = new WSCore(wsCorePort);
         authorizer = new Authorizer(new InetSocketAddress(authorizerPort), 0);
 
+        console.start( );
         authorizer.start( );
         wsCore.start( );
 
