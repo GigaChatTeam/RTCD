@@ -8,12 +8,13 @@ Operating on WebSockets, written in Java.
 
 Entry point
 
-* WS `ws://<POINT>?<TOKEN>`
+* WS `ws://<POINT>/token?<PARAMS>`
 
 Arguments
 
-* `POINT`: `STRING` - connection address
-* `TOKEN`: `STRING` - full user token
+* `POINT`: - connection address
+* `TOKEN`: - full user token
+* `PARAMS`: - HTTP GET-map style connection parameters
 
 Result
 
