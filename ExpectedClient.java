@@ -8,14 +8,15 @@ public class ExpectedClient {
     final long id;
     final long start;
 
+    final String key;
     final String ipAddress;
     final String agent;
 
-    ExpectedClient (String token, long id, String ipAddress, String agent) {
+    ExpectedClient (String token, long id, String key, String ipAddress, String agent) {
         this.token = token;
         this.id = id;
-        System.out.println(STR."\{ipAddress} | \{agent}");
 
+        this.key = key;
         this.ipAddress = ipAddress;
         this.agent = agent;
 
@@ -23,6 +24,6 @@ public class ExpectedClient {
     }
 
     boolean clearing (long currentTimeMillis) {
-        return ((currentTimeMillis - start) >= 600000000);
+        return ((currentTimeMillis - start) >= 20000000);
     }
 }

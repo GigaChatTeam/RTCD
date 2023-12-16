@@ -46,6 +46,10 @@ class Clients {
         clients.put(client.socket, client);
     }
 
+    public ConnectedClient getClient (WebSocket socket) {
+        return clients.get(socket);
+    }
+
     public Boolean isClientConnected (long client) {
         return clients.values( ).stream( )
                 .anyMatch(c -> c.id == client);

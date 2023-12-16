@@ -1,7 +1,5 @@
 import com.jsoniter.spi.JsonException;
 import dbexecutors.ChannelsExecutor;
-import dbexecutors.PermissionOperator;
-import dbexecutors.SystemExecutor;
 import exceptions.AccessDenied;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -12,6 +10,9 @@ import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
+
+import static dbexecutors.SystemExecutor.logAuthentication;
+import static dbexecutors.SystemExecutor.logExit;
 
 
 class WSCore extends WebSocketServer {
@@ -31,28 +32,24 @@ class WSCore extends WebSocketServer {
     public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
         if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor( ));
 
-        Helper.ConnectionPath connectParams;
+        String[] connectionParams = clientHandshake.getResourceDescriptor( ).split("/");
 
         try {
-            connectParams = Helper.parseURI(clientHandshake.getResourceDescriptor( ));
-        } catch (Helper.InvalidURIException e) {
-            webSocket.close(1400, "InsufficientData");
-            return;
-        }
-
-        if (PermissionOperator.validateToken(connectParams.client, connectParams.secret, connectParams.key)) {
-            clients.addClient(new ConnectedClient(webSocket, connectParams.client));
-            webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize("SYSTEM"));
-            clients.changeClientConnectionStatus(webSocket, true);
-        } else {
-            webSocket.close(1401, "InvalidAuthorizationData");
-            return;
-        }
-
-        try {
-            SystemExecutor.logAuthentication(connectParams.client, Helper.SHA512(connectParams.key), null);
-        } catch (SQLException e) {
+            ExpectedClient validateClient = Starter.authorizer.validateClient(Long.valueOf(connectionParams[1]), connectionParams[2]);
+            if (validateClient != null) {
+                clients.addClient(new ConnectedClient(webSocket, Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key)));
+                webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize(connectionParams[2]));
+                clients.changeClientConnectionStatus(webSocket, true);
+                logAuthentication(
+                        Long.parseLong(connectionParams[1]),
+                        Helper.SHA512(validateClient.key),
+                        validateClient.agent);
+            } else webSocket.close(4002, "InvalidAuthorizationData");
+        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+            webSocket.close(1007, "InsufficientData");
+        } catch (Exception e) {
             e.printStackTrace( );
+            webSocket.close(1011, "InsufficientData");
         }
     }
 
@@ -154,12 +151,37 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onClose (WebSocket webSocket, int status, String reason, boolean b) {
-        clients.removeClient(webSocket);
+        ConnectedClient client = clients.getClient(webSocket);
+        try {
+            if (client != null) {
+                logExit(
+                        client.id,
+                        client.key
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace( );
+        } finally {
+            clients.removeClient(webSocket);
+        }
     }
 
     @Override
     public void onError (WebSocket webSocket, Exception e) {
-        clients.removeClient(webSocket);
+        e.printStackTrace( );
+        ConnectedClient client = clients.getClient(webSocket);
+        try {
+            if (client != null) {
+                logExit(
+                        client.id,
+                        client.key
+                );
+            }
+        } catch (SQLException _e) {
+            _e.printStackTrace( );
+        } finally {
+            clients.removeClient(webSocket);
+        }
     }
 
     @Override

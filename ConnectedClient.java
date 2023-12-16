@@ -7,11 +7,14 @@ public class ConnectedClient {
     public final long id;
     protected final WebSocket socket;
     protected final HashSet<Channel> channels = new HashSet<>( );
+    protected final String key;
+
     public boolean status = false;
 
-    public ConnectedClient (WebSocket sock, long id) {
+    public ConnectedClient (WebSocket sock, long id, String key) {
         this.socket = sock;
         this.id = id;
+        this.key = key;
     }
 
     public void addListenChannel (long channel, boolean canPost) {

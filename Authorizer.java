@@ -6,13 +6,16 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import dbexecutors.PermissionOperator;
+import dbexecutors.SystemExecutor;
 import exceptions.InvalidAuthorizationDataException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -70,23 +73,24 @@ public class Authorizer {
         synchronized (expectedClients) {
             token = generateRandomAccessToken( );
 
-            addClient(new ExpectedClient(token, id, ipAddress, agent));
+            addClient(new ExpectedClient(token, id, key, ipAddress, agent));
         }
 
         return token;
     }
 
-    boolean validateClient (Long id, String token) {
+    @Nullable
+    ExpectedClient validateClient (Long id, String token) {
         synchronized (expectedClients) {
             ExpectedClient expectedClient = expectedClients.stream( )
                     .filter(client -> client.id == id && Objects.equals(client.token, token))
                     .findFirst( )
                     .orElse(null);
 
-            if (expectedClient == null) return false;
+            if (expectedClient == null) return null;
             else {
                 expectedClients.remove(expectedClient);
-                return true;
+                return expectedClient;
             }
         }
     }
@@ -117,8 +121,8 @@ public class Authorizer {
     class AuthorizeHandler implements HttpHandler {
         @Override
         public void handle (@NotNull HttpExchange exchange) throws IOException {
-            System.out.println(expectedClients);
-
+            AuthorizeRequest request = null;
+            Headers headers = null;
             try {
                 if (!"POST".equals(exchange.getRequestMethod( ))) {
                     exchange.sendResponseHeaders(405, 0);
@@ -127,8 +131,6 @@ public class Authorizer {
                     os.close( );
                     return;
                 }
-
-                AuthorizeRequest request;
 
                 try {
                     request = JsonIterator.deserialize(new String(exchange.getRequestBody( ).readAllBytes( ), StandardCharsets.UTF_8), AuthorizeRequest.class);
@@ -140,11 +142,11 @@ public class Authorizer {
                     return;
                 }
 
-                Headers headers = exchange.getRequestHeaders( );
+                headers = exchange.getRequestHeaders( );
 
                 String token = addClient(request.client, request.secret, request.key,
                         exchange.getRemoteAddress( ).getHostName( ),
-                        headers.get("User-Agent").getFirst());
+                        headers.get("User-Agent").getFirst( ));
 
                 exchange.sendResponseHeaders(200, token.length( ));
                 OutputStream os = exchange.getResponseBody( );
@@ -156,6 +158,14 @@ public class Authorizer {
                 OutputStream os = exchange.getResponseBody( );
                 os.write(ErrorsResponses.invalidAuthorizationData.getBytes( ));
                 os.close( );
+
+                assert headers != null;
+                try {
+                    SystemExecutor.logInterruptedLogin(
+                            request.client, Helper.SHA512(request.key), headers.get("User-Agent").getFirst( ));
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             } catch (IOException _) {
             } catch (Exception e) {
                 e.printStackTrace( );
