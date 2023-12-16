@@ -15,37 +15,37 @@ import static com.jsoniter.spi.JsoniterSpi.registerTypeEncoder;
 public class JsonIteratorExtra {
     public static class UUIDSupport implements Encoder, Decoder {
         public static void registerModule () {
-            registerTypeDecoder(UUID.class, jsonIterator -> UUID.fromString(jsonIterator.readString()));
-            registerTypeEncoder(UUID.class, (obj, stream) -> stream.writeVal(obj.toString()));
+            registerTypeDecoder(UUID.class, jsonIterator -> UUID.fromString(jsonIterator.readString( )));
+            registerTypeEncoder(UUID.class, (obj, stream) -> stream.writeVal(obj.toString( )));
         }
 
         @Override
         public Object decode (JsonIterator jsonIterator) throws IOException {
-            return UUID.fromString(jsonIterator.readString());
+            return UUID.fromString(jsonIterator.readString( ));
         }
 
         @Override
         public void encode (Object obj, JsonStream stream) throws IOException {
-            stream.writeVal(obj.toString());
+            stream.writeVal(obj.toString( ));
         }
     }
 
     public record SQLTimestampSupport(SimpleDateFormat dateFormat) implements Decoder, Encoder {
         @Override
         public Object decode (JsonIterator jsonIterator) throws IOException {
-            String timestampStr = jsonIterator.readString();
+            String timestampStr = jsonIterator.readString( );
             return Timestamp.valueOf(timestampStr);
         }
 
         @Override
         public void encode (Object obj, JsonStream stream) throws IOException {
             Timestamp timestamp = (Timestamp) obj;
-            stream.writeVal(timestamp.toString());
+            stream.writeVal(timestamp.toString( ));
         }
 
         private Timestamp parse (JsonIterator jsonIterator) throws IOException {
             try {
-                return new Timestamp(dateFormat.parse(jsonIterator.readString()).getTime());
+                return new Timestamp(dateFormat.parse(jsonIterator.readString( )).getTime( ));
             } catch (ParseException e) {
                 throw new IOException(e);
             }
@@ -53,7 +53,7 @@ public class JsonIteratorExtra {
 
         public void registerModule () {
             registerTypeDecoder(Timestamp.class, this::parse);
-            registerTypeEncoder(Timestamp.class, (obj, stream) -> stream.writeVal(obj.toString()));
+            registerTypeEncoder(Timestamp.class, (obj, stream) -> stream.writeVal(obj.toString( )));
         }
     }
 }

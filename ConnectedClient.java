@@ -2,23 +2,16 @@ import DataThreads.Channel;
 import org.java_websocket.WebSocket;
 
 import java.util.HashSet;
-import java.util.Objects;
 
-public class Client {
+public class ConnectedClient {
     public final long id;
     protected final WebSocket socket;
-    private final String token;
-    protected final HashSet<Channel> channels = new HashSet<>();
+    protected final HashSet<Channel> channels = new HashSet<>( );
     public boolean status = false;
 
-    public Client (WebSocket sock, long id, String token) {
+    public ConnectedClient (WebSocket sock, long id) {
         this.socket = sock;
         this.id = id;
-        this.token = token;
-    }
-
-    public boolean verifyToken (String token) {
-        return Objects.equals(token, this.token);
     }
 
     public void addListenChannel (long channel, boolean canPost) {
@@ -35,9 +28,9 @@ public class Client {
 
     public void removeListenChannel (long channel) {
         channels.remove(
-                channels.stream()
+                channels.stream( )
                         .filter(c -> c.id == channel)
-                        .findFirst()
+                        .findFirst( )
                         .orElse(null)
         );
     }

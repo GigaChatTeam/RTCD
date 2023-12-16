@@ -1,0 +1,175 @@
+import com.jsoniter.JsonIterator;
+import com.jsoniter.annotation.JsonProperty;
+import com.jsoniter.spi.JsonException;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import dbexecutors.PermissionOperator;
+import exceptions.InvalidAuthorizationDataException;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+
+import static java.lang.System.currentTimeMillis;
+import static java.time.Instant.ofEpochSecond;
+import static java.util.UUID.randomUUID;
+
+public class Authorizer {
+    private final InetSocketAddress address;
+    private final HttpServer authorizeServer;
+    private final HashSet<ExpectedClient> expectedClients = new HashSet<>( );
+    private final Thread tokensCleaningDaemon = new Thread(() -> {
+        List<ExpectedClient> toClear;
+        while (Starter.running) {
+            long current = Date.from(ofEpochSecond(currentTimeMillis( ))).getTime( );
+
+            toClear = expectedClients.stream( )
+                    .filter(client -> client.clearing(current))
+                    .toList( );
+
+            synchronized (expectedClients) {
+                toClear.forEach(expectedClients::remove);
+            }
+
+            Thread.onSpinWait( );
+        }
+    });
+
+    Authorizer (InetSocketAddress address, int backlog) throws IOException {
+        authorizeServer = HttpServer.create(address, backlog);
+        authorizeServer.createContext("/", new AuthorizeHandler( ));
+        authorizeServer.setExecutor(null);
+        this.address = address;
+    }
+
+    private synchronized String generateRandomAccessToken () {
+        while (true) {
+            String randomSecret = Helper.SHA512(randomUUID( ).toString( ));
+
+            if (expectedClients.stream( )
+                    .filter(client -> Objects.equals(client.token, randomSecret))
+                    .toList( )
+                    .isEmpty( )) {
+                return randomSecret;
+            }
+        }
+    }
+
+    private String addClient (Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException {
+        if (!PermissionOperator.validateToken(id, secret, key)) throw new InvalidAuthorizationDataException( );
+        String token;
+
+        synchronized (expectedClients) {
+            token = generateRandomAccessToken( );
+
+            addClient(new ExpectedClient(token, id, ipAddress, agent));
+        }
+
+        return token;
+    }
+
+    boolean validateClient (Long id, String token) {
+        synchronized (expectedClients) {
+            ExpectedClient expectedClient = expectedClients.stream( )
+                    .filter(client -> client.id == id && Objects.equals(client.token, token))
+                    .findFirst( )
+                    .orElse(null);
+
+            if (expectedClient == null) return false;
+            else {
+                expectedClients.remove(expectedClient);
+                return true;
+            }
+        }
+    }
+
+    private synchronized void addClient (ExpectedClient client) {
+        expectedClients.add(client);
+    }
+
+    void start () {
+        authorizeServer.start( );
+        tokensCleaningDaemon.start( );
+        System.out.println(STR."Authorizer server started on port \{address.getPort( )}");
+    }
+
+    void stop () {
+        authorizeServer.stop(0);
+    }
+
+    public static class AuthorizeRequest {
+        @JsonProperty(required = true)
+        Long client;
+        @JsonProperty(required = true)
+        String secret;
+        @JsonProperty(required = true)
+        String key;
+    }
+
+    class AuthorizeHandler implements HttpHandler {
+        @Override
+        public void handle (@NotNull HttpExchange exchange) throws IOException {
+            System.out.println(expectedClients);
+
+            try {
+                if (!"POST".equals(exchange.getRequestMethod( ))) {
+                    exchange.sendResponseHeaders(405, 0);
+                    OutputStream os = exchange.getResponseBody( );
+                    os.write("".getBytes( ));
+                    os.close( );
+                    return;
+                }
+
+                AuthorizeRequest request;
+
+                try {
+                    request = JsonIterator.deserialize(new String(exchange.getRequestBody( ).readAllBytes( ), StandardCharsets.UTF_8), AuthorizeRequest.class);
+                } catch (JsonException e) {
+                    exchange.sendResponseHeaders(400, ErrorsResponses.lackOfData.length( ));
+                    OutputStream os = exchange.getResponseBody( );
+                    os.write(ErrorsResponses.lackOfData.getBytes( ));
+                    os.close( );
+                    return;
+                }
+
+                Headers headers = exchange.getRequestHeaders( );
+
+                String token = addClient(request.client, request.secret, request.key,
+                        exchange.getRemoteAddress( ).getHostName( ),
+                        headers.get("User-Agent").getFirst());
+
+                exchange.sendResponseHeaders(200, token.length( ));
+                OutputStream os = exchange.getResponseBody( );
+                os.write(token.getBytes( ));
+                os.close( );
+
+            } catch (InvalidAuthorizationDataException e) {
+                exchange.sendResponseHeaders(403, ErrorsResponses.invalidAuthorizationData.length( ));
+                OutputStream os = exchange.getResponseBody( );
+                os.write(ErrorsResponses.invalidAuthorizationData.getBytes( ));
+                os.close( );
+            } catch (IOException _) {
+            } catch (Exception e) {
+                e.printStackTrace( );
+                exchange.sendResponseHeaders(400, ErrorsResponses.serverError.length( ));
+                OutputStream os = exchange.getResponseBody( );
+                os.write(ErrorsResponses.serverError.getBytes( ));
+                os.close( );
+            }
+        }
+
+        static class ErrorsResponses {
+            static final String lackOfData = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"LackOfData\"}";
+            static final String serverError = "{\"status\":\"Refused\",\"reason\":\"InternalServerError\"}";
+            static final String invalidAuthorizationData = "{\"status\":\"Refused\",\"reason\":\"InvalidAuthorizationData\"}";
+        }
+    }
+}

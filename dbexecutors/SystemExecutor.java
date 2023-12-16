@@ -16,11 +16,11 @@ public class SystemExecutor extends DBOperator {
 
         stmt.setLong(1, client);
         stmt.setString(2, key);
-        stmt.setTimestamp(3, new Timestamp(new Date().getTime()));
+        stmt.setTimestamp(3, new Timestamp(new Date( ).getTime( )));
         stmt.setString(4, agent);
         stmt.setBoolean(5, status);
 
-        stmt.execute();
+        stmt.execute( );
     }
 
     public static void logAuthentication (long client, String key, String agent) throws SQLException {

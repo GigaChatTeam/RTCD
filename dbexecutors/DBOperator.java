@@ -21,6 +21,7 @@ public abstract class DBOperator {
     static String host;
     static int port;
     static String applicationName;
+    static Connection conn;
 
     static {
         try {
@@ -31,9 +32,6 @@ public abstract class DBOperator {
             System.exit(1);
         }
     }
-
-
-    static Connection conn;
 
     static {
         try {
@@ -47,7 +45,7 @@ public abstract class DBOperator {
                     config.get("server", "id", String.class));
 
             url = STR."jdbc:postgresql://\{host}:\{port}/\{database}?ApplicationName=\{encode(applicationName, StandardCharsets.UTF_8)}";
-            System.out.println(url);
+
             try {
                 conn = DriverManager.getConnection(url, user, password);
             } catch (SQLException e) {

@@ -12,7 +12,7 @@ public class ResponsesPatterns {
                 static final String intention = "88";
 
                 String serialize (String controlHash) {
-                    return STR. "\{ intention }%\{ controlHash }%{}" ;
+                    return STR."\{intention}%\{controlHash}%{}";
                 }
             }
 
@@ -21,7 +21,7 @@ public class ResponsesPatterns {
                 static final String intention = "89";
 
                 String serialize (String controlHash) {
-                    return STR. "\{ intention }%\{ controlHash }%{}" ;
+                    return STR."\{intention}%\{controlHash}%{}";
                 }
             }
         }
@@ -32,7 +32,7 @@ public class ResponsesPatterns {
                     static final String intention = "210";
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                        return STR."\{intention}%\{controlHash}%{}";
                     }
                 }
 
@@ -40,7 +40,7 @@ public class ResponsesPatterns {
                     static final String intention = "210";
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                        return STR."\{intention}%\{controlHash}%{}";
                     }
                 }
             }
@@ -51,7 +51,7 @@ public class ResponsesPatterns {
                     static final String intention = "89";
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                        return STR."\{intention}%\{controlHash}%{}";
                     }
                 }
 
@@ -60,7 +60,7 @@ public class ResponsesPatterns {
                     static final String intention = "89";
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%{}" ;
+                        return STR."\{intention}%\{controlHash}%{}";
                     }
                 }
             }
@@ -77,7 +77,7 @@ public class ResponsesPatterns {
                 }
 
                 String serialize (String controlHash) {
-                    return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                 }
             }
         }
@@ -106,7 +106,7 @@ public class ResponsesPatterns {
                     }
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                     }
                 }
 
@@ -128,7 +128,7 @@ public class ResponsesPatterns {
                     }
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                     }
                 }
 
@@ -143,7 +143,7 @@ public class ResponsesPatterns {
                     }
 
                     String serialize (String controlHash) {
-                        return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                     }
                 }
             }
@@ -191,7 +191,7 @@ public class ResponsesPatterns {
                         }
 
                         String serialize (String controlHash) {
-                            return STR. "\{ intention }%\{ controlHash }%\{ JsonStream.serialize(this) }" ;
+                            return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                         }
                     }
                 }

@@ -22,17 +22,17 @@ public class PermissionOperator extends DBOperator {
             stmt = conn.prepareStatement(sql);
             stmt.setLong(1, id);
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery( );
 
-            while (rs.next()) {
+            while (rs.next( )) {
                 if (
-                        verifierBCrypt(secret, rs.getString(1).getBytes()) &&
-                        verifierBCrypt(key, rs.getString(2).getBytes())
+                        verifierBCrypt(secret, rs.getString(1).getBytes( )) &&
+                        verifierBCrypt(key, rs.getString(2).getBytes( ))
                 ) return true;
             }
             return false;
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace( );
             return false;
         }
     }

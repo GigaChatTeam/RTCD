@@ -53,9 +53,9 @@ public enum Commands {
     }
 
     public static Commands byIntents (String intents) {
-        return Arrays.stream(Commands.values())
+        return Arrays.stream(Commands.values( ))
                 .filter(v -> Objects.equals(v.intents, intents))
-                .findFirst()
-                .orElseThrow();
+                .findFirst( )
+                .orElseThrow( );
     }
 }

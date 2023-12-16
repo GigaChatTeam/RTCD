@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 class Helper {
     public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {
-        return BCrypt.verifyer().verify(Arrays.copyOfRange(data.toCharArray(), 0, Math.min(data.toCharArray().length, 72)), hash_data).verified;
+        return BCrypt.verifyer( ).verify(Arrays.copyOfRange(data.toCharArray( ), 0, Math.min(data.toCharArray( ).length, 72)), hash_data).verified;
     }
 
     static String SHA512 (String string) {
@@ -23,12 +23,12 @@ class Helper {
         }
 
         byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder( );
 
         for (byte aByte : bytes) {
             sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
         }
 
-        return sb.toString();
+        return sb.toString( );
     }
 }

@@ -43,41 +43,41 @@ public class SystemResponses {
 
         static class Users {
             static String MESSAGE_DAMAGED (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.MESSAGE_DAMAGED }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.MESSAGE_DAMAGED}";
             }
 
             static String PERMISSION_DENIED (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.PERMISSION_DENIED }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.PERMISSION_DENIED}";
             }
 
             static String SERVER_ERROR (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.SERVER_ERROR }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.SERVER_ERROR}";
             }
 
             static String NOT_AUTHORIZED (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_AUTHORIZED }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_AUTHORIZED}";
             }
 
             public static String NOT_FOUND (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_FOUND }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_FOUND}";
             }
 
             static String NOT_VALID_DATA (String hash) {
-                return STR. "SYSTEM-ERROR%\{ hash }%\{ Bodies.NOT_VALID_DATA }" ;
+                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_VALID_DATA}";
             }
         }
 
         static class Systems {
             static String NOT_AUTHORIZED () {
-                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_AUTHORIZED }" ;
+                return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_AUTHORIZED}";
             }
 
             static String NOT_VALID_INTENTIONS () {
-                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_VALID_INTENTIONS }" ;
+                return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_INTENTIONS}";
             }
 
             static String NOT_VALID_ID () {
-                return STR. "SYSTEM-ERROR%MISS%\{ Bodies.NOT_VALID_ID }" ;
+                return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_ID}";
             }
         }
     }

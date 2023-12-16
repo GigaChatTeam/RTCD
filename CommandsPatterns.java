@@ -29,9 +29,9 @@ public class CommandsPatterns {
                 }
 
                 public static Generate byIntents (String intents) {
-                    return Arrays.stream(Generate.values())
+                    return Arrays.stream(Generate.values( ))
                             .filter(v -> Objects.equals(v.intents, intents))
-                            .findFirst()
+                            .findFirst( )
                             .orElse(null);
                 }
             }

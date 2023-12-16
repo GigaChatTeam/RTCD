@@ -20,9 +20,9 @@ class TTIntentions {
                 stmt.setLong(3, client);
                 stmt.setLong(4, channel);
 
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
                 return rs.getBoolean(1);
             }
@@ -36,9 +36,9 @@ class TTIntentions {
                 stmt.setLong(1, client);
                 stmt.setLong(2, channel);
 
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
                 return rs.getBoolean(1);
             }

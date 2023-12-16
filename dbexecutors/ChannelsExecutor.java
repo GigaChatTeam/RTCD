@@ -22,9 +22,9 @@ public class ChannelsExecutor extends DBOperator {
         stmt.setLong(1, owner);
         stmt.setString(2, title);
 
-        ResultSet rs = stmt.executeQuery();
+        ResultSet rs = stmt.executeQuery( );
 
-        rs.next();
+        rs.next( );
 
         return rs.getLong(1);
     }
@@ -41,11 +41,11 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setLong(2, channel);
             stmt.setString(3, uri);
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery( );
 
-            rs.next();
+            rs.next( );
 
-            if (!rs.getBoolean(1)) throw new AccessDenied();
+            if (!rs.getBoolean(1)) throw new AccessDenied( );
         }
 
         public static void leave (long user, long channel) throws SQLException, AccessDenied {
@@ -58,11 +58,11 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery( );
 
-            rs.next();
+            rs.next( );
 
-            if (!rs.getBoolean(1)) throw new AccessDenied();
+            if (!rs.getBoolean(1)) throw new AccessDenied( );
         }
 
         public static class Permissions {
@@ -84,9 +84,9 @@ public class ChannelsExecutor extends DBOperator {
                 stmt.setLong(1, client);
                 stmt.setLong(2, channel);
 
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
                 return rs.getBoolean(1);
             }
@@ -104,14 +104,14 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery( );
 
-            rs.next();
+            rs.next( );
 
             String uri = rs.getString(1);
 
             if (uri != null) return uri;
-            else throw new AccessDenied();
+            else throw new AccessDenied( );
         }
 
         public static void delete (long user, String uri) throws SQLException, AccessDenied {
@@ -134,9 +134,9 @@ public class ChannelsExecutor extends DBOperator {
             stmt.setArray(5, conn.createArrayOf("BIGINT", media));
             stmt.setArray(6, conn.createArrayOf("BIGINT", files));
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery( );
 
-            rs.next();
+            rs.next( );
 
             return rs.getTimestamp(1);
         }
@@ -149,7 +149,7 @@ public class ChannelsExecutor extends DBOperator {
     public static class Settings {
         public static class External {
             public static void changeTitle (long user, long channel, @NotNull String newTitle) throws SQLException, NotFound, NotValid {
-                if (newTitle.length() > 2 && newTitle.length() < 33) throw new NotValid();
+                if (newTitle.length( ) > 2 && newTitle.length( ) < 33) throw new NotValid( );
 
                 String sql = """
                             SELECT channels.change_title(%s, %s, %s)
@@ -160,15 +160,15 @@ public class ChannelsExecutor extends DBOperator {
                 stmt.setLong(2, channel);
                 stmt.setString(3, newTitle);
 
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
-                if (rs.getBoolean(1)) throw new NotFound();
+                if (rs.getBoolean(1)) throw new NotFound( );
             }
 
             public static void changeDescription (long user, long channel, @NotNull String newDescription) throws SQLException, NotFound, NotValid {
-                if (newDescription.length() < 257) throw new NotValid();
+                if (newDescription.length( ) < 257) throw new NotValid( );
 
                 String sql = """
                             SELECT channels.change_description(%s, %s, %s)
@@ -179,11 +179,11 @@ public class ChannelsExecutor extends DBOperator {
                 stmt.setLong(2, channel);
                 stmt.setString(3, newDescription);
 
-                ResultSet rs = stmt.executeQuery();
+                ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
-                if (rs.getBoolean(1)) throw new NotFound();
+                if (rs.getBoolean(1)) throw new NotFound( );
             }
         }
     }

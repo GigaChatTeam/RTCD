@@ -14,13 +14,13 @@ public class Helper {
     public static @NotNull ConnectionPath parseURI (@NotNull String uri) throws InvalidURIException {
         int index = uri.indexOf('?');
         if (index == -1) {
-            throw new InvalidURIException();
+            throw new InvalidURIException( );
         }
 
         String path = uri.substring(index + 1);
 
-        if (!(path.chars().filter(c -> c == '.').count() == 2 || path.chars().filter(c -> c == '%').count() == 1))
-            throw new InvalidURIException();
+        if (!(path.chars( ).filter(c -> c == '.').count( ) == 2 || path.chars( ).filter(c -> c == '%').count( ) == 1))
+            throw new InvalidURIException( );
 
         String[] elements = path.split("\\.");
         String[] tokens = elements[2].split("%");
@@ -28,8 +28,27 @@ public class Helper {
         try {
             return new ConnectionPath(elements[0], Long.parseLong(elements[1]), tokens[0], tokens[1]);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            throw new InvalidURIException();
+            throw new InvalidURIException( );
         }
+    }
+
+    static String SHA512 (String string) {
+        MessageDigest md;
+
+        try {
+            md = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            return string;
+        }
+
+        byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder( );
+
+        for (byte aByte : bytes) {
+            sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString( );
     }
 
     static final class Constants {
@@ -47,7 +66,7 @@ public class Helper {
         String key;
 
         public ConnectionPath (@NotNull String type, long client, String secret, String key) {
-            this.type = type.toUpperCase();
+            this.type = type.toUpperCase( );
             this.client = client;
             this.secret = secret;
             this.key = key;
@@ -85,24 +104,5 @@ public class Helper {
     public static class TTokenQueryWrapper {
         String intention;
         Any data;
-    }
-
-    static String SHA512 (String string) {
-        MessageDigest md;
-
-        try {
-            md = MessageDigest.getInstance("SHA-512");
-        } catch (NoSuchAlgorithmException e) {
-            return string;
-        }
-
-        byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
-        StringBuilder sb = new StringBuilder();
-
-        for (byte aByte : bytes) {
-            sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-        }
-
-        return sb.toString();
     }
 }
