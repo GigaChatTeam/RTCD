@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.UUID.randomUUID;
@@ -123,6 +124,7 @@ public class Authorizer {
         public void handle (@NotNull HttpExchange exchange) throws IOException {
             AuthorizeRequest request = null;
             Headers headers = null;
+
             try {
                 if (!"POST".equals(exchange.getRequestMethod( ))) {
                     exchange.sendResponseHeaders(405, 0);
@@ -132,54 +134,50 @@ public class Authorizer {
                     return;
                 }
 
-                try {
-                    request = JsonIterator.deserialize(new String(exchange.getRequestBody( ).readAllBytes( ), StandardCharsets.UTF_8), AuthorizeRequest.class);
-                } catch (JsonException e) {
-                    exchange.sendResponseHeaders(400, ErrorsResponses.lackOfData.length( ));
-                    OutputStream os = exchange.getResponseBody( );
-                    os.write(ErrorsResponses.lackOfData.getBytes( ));
-                    os.close( );
-                    return;
-                }
-
+                request = JsonIterator.deserialize(new String(exchange.getRequestBody( ).readAllBytes( ), StandardCharsets.UTF_8), AuthorizeRequest.class);
                 headers = exchange.getRequestHeaders( );
 
-                String token = addClient(request.client, request.secret, request.key,
+                String response = format(Responses.success, addClient(request.client, request.secret, request.key,
                         exchange.getRemoteAddress( ).getHostName( ),
-                        headers.get("User-Agent").getFirst( ));
+                        headers.get("User-Agent").getFirst( )));
 
-                exchange.sendResponseHeaders(200, token.length( ));
+                exchange.sendResponseHeaders(200, response.length( ));
                 OutputStream os = exchange.getResponseBody( );
-                os.write(token.getBytes( ));
+                os.write(response.getBytes( ));
                 os.close( );
-
+            } catch (JsonException e) {
+                exchange.sendResponseHeaders(400, Responses.lackOfData.length( ));
+                OutputStream os = exchange.getResponseBody( );
+                os.write(Responses.lackOfData.getBytes( ));
+                os.close( );
             } catch (InvalidAuthorizationDataException e) {
-                exchange.sendResponseHeaders(403, ErrorsResponses.invalidAuthorizationData.length( ));
+                exchange.sendResponseHeaders(403, Responses.invalidAuthorizationData.length( ));
                 OutputStream os = exchange.getResponseBody( );
-                os.write(ErrorsResponses.invalidAuthorizationData.getBytes( ));
+                os.write(Responses.invalidAuthorizationData.getBytes( ));
                 os.close( );
 
-                assert headers != null;
                 try {
                     SystemExecutor.logInterruptedLogin(
                             request.client, Helper.SHA512(request.key), headers.get("User-Agent").getFirst( ));
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    ex.printStackTrace( );
                 }
             } catch (IOException _) {
             } catch (Exception e) {
                 e.printStackTrace( );
-                exchange.sendResponseHeaders(400, ErrorsResponses.serverError.length( ));
+                exchange.sendResponseHeaders(400, Responses.serverError.length( ));
                 OutputStream os = exchange.getResponseBody( );
-                os.write(ErrorsResponses.serverError.getBytes( ));
+                os.write(Responses.serverError.getBytes( ));
                 os.close( );
             }
         }
 
-        static class ErrorsResponses {
+        static class Responses {
             static final String lackOfData = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"LackOfData\"}";
             static final String serverError = "{\"status\":\"Refused\",\"reason\":\"InternalServerError\"}";
             static final String invalidAuthorizationData = "{\"status\":\"Refused\",\"reason\":\"InvalidAuthorizationData\"}";
+
+            static final String success = "{\"status\":\"Done\",\"token\":\"%s\"}";
         }
     }
 }
