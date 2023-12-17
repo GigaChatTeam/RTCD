@@ -1,13 +1,14 @@
+import exceptions.HandlerNodeTryRegisterSubNodeException;
+import exceptions.NodePathAlreadyRegisteredException;
 import org.ini4j.Ini;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Scanner;
 
 public class Starter {
-    static volatile boolean running = false;
+    public static volatile boolean running = false;
 
     static byte DEBUG;
     static Ini config;
@@ -17,41 +18,19 @@ public class Starter {
     static WSCore wsCore;
     static Authorizer authorizer;
 
-    static Thread runner = new Thread(() -> {
-        while (running) {
-            Thread.onSpinWait( );
-        }
-
-        try {
-            wsCore.stop( );
-            System.out.println("WSCore thread has been stopped");
-        } catch (InterruptedException e) {
-            e.printStackTrace( );
-            System.out.println("WSCore thread has been stopped");
-        }
-
-        authorizer.stop( );
-        System.out.println("HTTP Authorizer thread has been stopped");
-    });
-
-    static Thread console = new Thread(() -> {
-        Scanner scanner = new Scanner(System.in);
-
-        while (running) {
-            String command = scanner.nextLine( );
-            if (!command.startsWith("/")) {
-                continue;
-            }
-
-            switch (command) {
-                case "/stop" -> running = false;
-            }
-        }
-    });
-
     static {
         JsonIteratorExtra.UUIDSupport.registerModule( );
         new JsonIteratorExtra.SQLTimestampSupport(Helper.Constants.timestamp).registerModule( );
+    }
+
+    static {
+        try {
+            Console.registerHandler(new String[]{ "stop" }, (String[] _) -> running = false);
+        } catch (NodePathAlreadyRegisteredException | HandlerNodeTryRegisterSubNodeException e) {
+            System.out.println("Initial server error");
+            e.printStackTrace( );
+            System.exit(1);
+        }
     }
 
     public static void main (String[] args) throws IOException {
@@ -75,22 +54,28 @@ public class Starter {
         }
 
         running = true;
-        runner.start( );
 
         wsCore = new WSCore(wsCorePort);
         authorizer = new Authorizer(new InetSocketAddress(authorizerPort), 0);
 
-        console.start( );
         authorizer.start( );
         wsCore.start( );
+        Console.start( );
 
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        running = false;
+        while (running) {
+            Thread.onSpinWait( );
+        }
+
+        try {
+            wsCore.stop( );
+            System.out.println("WSCore thread has been stopped");
+        } catch (InterruptedException e) {
+            System.out.println("WSCore thread has been stopped");
+            e.printStackTrace( );
+        }
+
+        authorizer.stop( );
+        System.out.println("HTTP Authorizer thread has been stopped");
     }
 
     private static void createConfiguration (File file) throws IOException {
