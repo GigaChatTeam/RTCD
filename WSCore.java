@@ -40,10 +40,7 @@ class WSCore extends WebSocketServer {
                 clients.addClient(new ConnectedClient(webSocket, Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key)));
                 webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize(connectionParams[2]));
                 clients.changeClientConnectionStatus(webSocket, true);
-                logAuthentication(
-                        Long.parseLong(connectionParams[1]),
-                        Helper.SHA512(validateClient.key),
-                        validateClient.agent);
+                logAuthentication(Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key), validateClient.agent);
             } else webSocket.close(4002, "InvalidAuthorizationData");
         } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
             webSocket.close(1007, "InsufficientData");
@@ -89,18 +86,39 @@ class WSCore extends WebSocketServer {
         try {
             switch (cmd) {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
-                    if (!clients.isUserInChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel) || !clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                    if (!clients.isUserInChannel(
+                            webSocket,
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
+                        ||
+                        !clients.isUserCanPostToChannel(
+                                webSocket,
+                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                         throw new AccessDenied( );
 
 
-                    clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
+                    clients.sendCommandToChannel(
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
 
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
                         case "TEXT" -> {
                             if (!clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                                 throw new AccessDenied( );
 
-                            clients.sendCommandToChannel(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, new ResponsesPatterns.Channels.User.Messages.Post.New(((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, ChannelsExecutor.Messages.post(clients.getID(webSocket), ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text, null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files), null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
+                            clients.sendCommandToChannel(
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                    new ResponsesPatterns.Channels.User.Messages.Post.New(
+                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                            clients.getID(webSocket),
+                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
+                                            ChannelsExecutor.Messages.post(
+                                                    clients.getID(webSocket),
+                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
+                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
+                                                    null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files),
+                                            null,
+                                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
                         }
                         case "VOICE" -> {
                             // TODO create SQL to voice messages
@@ -112,7 +130,9 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
+                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
                         throw new AccessDenied( );
 
                     clients.addListeningClientToChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
@@ -154,10 +174,7 @@ class WSCore extends WebSocketServer {
         ConnectedClient client = clients.getClient(webSocket);
         try {
             if (client != null) {
-                logExit(
-                        client.id,
-                        client.key
-                );
+                logExit(client.id, client.key);
             }
         } catch (SQLException e) {
             e.printStackTrace( );
@@ -172,10 +189,7 @@ class WSCore extends WebSocketServer {
         ConnectedClient client = clients.getClient(webSocket);
         try {
             if (client != null) {
-                logExit(
-                        client.id,
-                        client.key
-                );
+                logExit(client.id, client.key);
             }
         } catch (SQLException _e) {
             _e.printStackTrace( );

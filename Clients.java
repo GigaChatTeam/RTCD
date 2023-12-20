@@ -96,11 +96,7 @@ class Clients {
     }
 
     public long getID (WebSocket webSocket) {
-        return clients.values( ).parallelStream( )
-                .filter(client -> client.socket == webSocket)
-                .map(client -> client.id)
-                .findFirst( )
-                .orElse(-1L);
+        return clients.get(webSocket).id;
     }
 
     public void changeClientConnectionStatus (WebSocket webSocket, boolean status) {

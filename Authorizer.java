@@ -165,7 +165,7 @@ public class Authorizer {
             } catch (IOException _) {
             } catch (Exception e) {
                 e.printStackTrace( );
-                exchange.sendResponseHeaders(400, Responses.serverError.length( ));
+                exchange.sendResponseHeaders(500, Responses.serverError.length( ));
                 OutputStream os = exchange.getResponseBody( );
                 os.write(Responses.serverError.getBytes( ));
                 os.close( );
