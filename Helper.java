@@ -1,6 +1,5 @@
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -10,28 +9,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class Helper {
-    @Contract("_ -> new")
-    public static @NotNull ConnectionPath parseURI (@NotNull String uri) throws InvalidURIException {
-        int index = uri.indexOf('?');
-        if (index == -1) {
-            throw new InvalidURIException( );
-        }
-
-        String path = uri.substring(index + 1);
-
-        if (!(path.chars( ).filter(c -> c == '.').count( ) == 2 || path.chars( ).filter(c -> c == '%').count( ) == 1))
-            throw new InvalidURIException( );
-
-        String[] elements = path.split("\\.");
-        String[] tokens = elements[2].split("%");
-
-        try {
-            return new ConnectionPath(elements[0], Long.parseLong(elements[1]), tokens[0], tokens[1]);
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            throw new InvalidURIException( );
-        }
-    }
-
     static String SHA512 (String string) {
         MessageDigest md;
 
@@ -53,31 +30,6 @@ public class Helper {
 
     static final class Constants {
         static final SimpleDateFormat timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    }
-
-    public static class InvalidURIException extends Exception {
-
-    }
-
-    public static class ConnectionPath {
-        String type;
-        long client;
-        String secret;
-        String key;
-
-        public ConnectionPath (@NotNull String type, long client, String secret, String key) {
-            this.type = type.toUpperCase( );
-            this.client = client;
-            this.secret = secret;
-            this.key = key;
-        }
-
-        public ConnectionPath (long client, String secret, String key) {
-            this.type = "USER";
-            this.client = client;
-            this.secret = secret;
-            this.key = key;
-        }
     }
 
     public static class MessagePacket {

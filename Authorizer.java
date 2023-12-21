@@ -110,7 +110,7 @@ public class Authorizer {
         authorizeServer.stop(0);
     }
 
-    public static class AuthorizeRequest {
+    private static class AuthorizeRequest {
         @JsonProperty(required = true)
         Long client;
         @JsonProperty(required = true)
@@ -131,6 +131,7 @@ public class Authorizer {
                     OutputStream os = exchange.getResponseBody( );
                     os.write("".getBytes( ));
                     os.close( );
+                    exchange.close();
                     return;
                 }
 
@@ -170,6 +171,8 @@ public class Authorizer {
                 os.write(Responses.serverError.getBytes( ));
                 os.close( );
             }
+
+            exchange.close();
         }
 
         static class Responses {

@@ -37,7 +37,7 @@ public class Starter {
         try {
             File file = new File("./settings.ini");
 
-            if (!file.createNewFile( )) {
+            if (file.createNewFile( )) {
                 createConfiguration(file);
             }
 
