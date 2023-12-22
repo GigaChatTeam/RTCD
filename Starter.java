@@ -19,8 +19,8 @@ public class Starter {
     static Authorizer authorizer;
 
     static {
-        JsonIteratorExtra.UUIDSupport.registerModule( );
-        new JsonIteratorExtra.SQLTimestampSupport(Helper.Constants.timestamp).registerModule( );
+        JsonIteratorExtra.SQLTimestampSupport.registerHandler( );
+        JsonIteratorExtra.UUIDSupport.registerHandler( );
     }
 
     static {
