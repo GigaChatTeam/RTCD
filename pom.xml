@@ -1,6 +1,5 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.gct.server.rtcd</groupId>
     <artifactId>gigachatteam-rtcd</artifactId>
     <version>0.1</version>
@@ -50,7 +49,9 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
+                    <compilerArgs>
+                        --enable-preview
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>
