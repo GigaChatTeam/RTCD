@@ -46,7 +46,7 @@ public class SystemExecutor extends DBOperator {
         String sql = """
                     INSERT INTO users.logins (client, key, login, agent, successfully)
                     VALUES
-                        (?, ?, TIMEZONE('UTC', now()), ?, false)
+                        (?, ?, TIMEZONE('UTC', now()), ?, FALSE)
                 """;
         PreparedStatement stmt = conn.prepareStatement(sql);
 
