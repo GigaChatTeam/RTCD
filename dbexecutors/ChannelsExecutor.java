@@ -74,8 +74,7 @@ public class ChannelsExecutor extends DBOperator {
                                 FROM channels.users
                                 WHERE
                                     client = ? AND
-                                    channel = ? AND
-                                    leaved IS NULL
+                                    channel = ?
                             )
                         """;
                 PreparedStatement stmt;
@@ -115,13 +114,13 @@ public class ChannelsExecutor extends DBOperator {
             else throw new AccessDenied( );
         }
 
-        public static void delete (long user, String uri) throws SQLException, AccessDenied {
-
-        }
+//        public static void delete (long user, String uri) throws SQLException, AccessDenied {
+//
+//        }
     }
 
     public static class Messages {
-        public static Timestamp post (long author, long channel, @Nullable UUID alias, @NotNull String text, @Nullable Long[][] media, @Nullable Long[] files) throws SQLException {
+        public static Timestamp postTextMessage (long author, long channel, @Nullable UUID alias, @NotNull String text, @Nullable Long[][] media, @Nullable Long[] files) throws SQLException {
             String sql = """
                         SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
                     """;
@@ -142,9 +141,9 @@ public class ChannelsExecutor extends DBOperator {
             return rs.getTimestamp(1);
         }
 
-        public static void edit (long author, long channel, Timestamp posted, String text, long[][] media, long[] audio) {
-
-        }
+//        public static void edit (long author, long channel, Timestamp posted, String text, long[][] media, long[] audio) {
+//
+//        }
     }
 
     public static class Settings {
