@@ -185,14 +185,15 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onError (WebSocket webSocket, Exception e) {
-        e.printStackTrace( );
+        if (Starter.DEBUG > 1) e.printStackTrace( );
+
         ConnectedClient client = clients.getClient(webSocket);
         try {
             if (client != null) {
                 logExit(client.id, client.key);
             }
-        } catch (SQLException _e) {
-            _e.printStackTrace( );
+        } catch (SQLException ex) {
+            ex.printStackTrace( );
         } finally {
             clients.removeClient(webSocket);
         }
@@ -201,5 +202,11 @@ class WSCore extends WebSocketServer {
     @Override
     public void onStart () {
         System.out.println(STR."WS server started on port \{port}");
+    }
+
+    @Override
+    public void stop () throws InterruptedException {
+        clients.closeAllClients(1001, "ServerShutdown");
+        super.stop( );
     }
 }

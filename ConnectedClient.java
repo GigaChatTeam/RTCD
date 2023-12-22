@@ -1,7 +1,10 @@
 import DataThreads.Channel;
 import org.java_websocket.WebSocket;
 
+import java.sql.SQLException;
 import java.util.HashSet;
+
+import static dbexecutors.SystemExecutor.logExit;
 
 public class ConnectedClient {
     public final long id;
@@ -42,7 +45,8 @@ public class ConnectedClient {
         socket.send(data);
     }
 
-    protected void close (int code, String reason) {
+    protected void close (int code, String reason) throws SQLException {
         socket.close(code, reason);
+        logExit(id, key);
     }
 }
