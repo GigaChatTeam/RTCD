@@ -42,7 +42,7 @@ class Clients {
         return clients.containsKey(webSocket);
     }
 
-    public void addClient (ConnectedClient client) {
+    public synchronized void addClient (ConnectedClient client) {
         clients.put(client.socket, client);
     }
 
@@ -55,7 +55,7 @@ class Clients {
                 .anyMatch(c -> c.id == client);
     }
 
-    public void removeClient (WebSocket socket) {
+    public synchronized void removeClient (WebSocket socket) {
         clients.remove(socket);
     }
 
