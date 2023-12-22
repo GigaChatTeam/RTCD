@@ -9,23 +9,22 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 class Helper {
-    public static Boolean verifierBCrypt (@NotNull String data, byte[] hash_data) {
-        return BCrypt.verifyer( ).verify(Arrays.copyOfRange(data.toCharArray( ), 0, Math.min(data.toCharArray( ).length, 72)), hash_data).verified;
+    public static boolean verifierBCrypt (@NotNull String data, byte[] hashData) {
+        return BCrypt.verifyer( ).verify(Arrays.copyOfRange(data.toCharArray( ), 0, Math.min(data.toCharArray( ).length, 72)), hashData).verified;
     }
 
-    static String SHA512 (String string) {
+    static @NotNull String SHA512 (@NotNull String string) {
         MessageDigest md;
 
         try {
             md = MessageDigest.getInstance("SHA-512");
         } catch (NoSuchAlgorithmException e) {
-            return string;
+            throw new RuntimeException(e);
         }
 
-        byte[] bytes = md.digest(string.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder( );
 
-        for (byte aByte : bytes) {
+        for (byte aByte : md.digest(string.getBytes(StandardCharsets.UTF_8))) {
             sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
         }
 
