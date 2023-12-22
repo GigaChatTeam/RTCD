@@ -4,6 +4,7 @@ import exceptions.AccessDenied;
 import exceptions.NotFound;
 import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,7 +13,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 public class ChannelsExecutor extends DBOperator {
-    public static long create (long owner, String title) throws SQLException {
+    public static long create (long owner, @NotNull String title) throws SQLException {
         String sql = """
                     SELECT channels.create(?, ?)
                 """;
@@ -30,7 +31,7 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Users {
-        public static void join (long user, long channel, String uri) throws SQLException, AccessDenied {
+        public static void join (long user, long channel, @NotNull String uri) throws SQLException, AccessDenied {
             String sql = """
                         SELECT channels.join_user(?, ?, ?)
                     """;
@@ -120,7 +121,7 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Messages {
-        public static Timestamp post (long author, long channel, UUID alias, @NotNull String text, Long[][] media, Long[] files) throws SQLException {
+        public static Timestamp post (long author, long channel, @Nullable UUID alias, @NotNull String text, @Nullable Long[][] media, @Nullable Long[] files) throws SQLException {
             String sql = """
                         SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
                     """;
