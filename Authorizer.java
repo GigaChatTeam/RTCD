@@ -23,7 +23,6 @@ import java.util.Objects;
 import static dbexecutors.SystemExecutor.logInterruptedLogin;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static java.lang.Thread.onSpinWait;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
@@ -37,15 +36,15 @@ public class Authorizer {
         while (Starter.running) {
             long current = Date.from(ofEpochSecond(currentTimeMillis( ))).getTime( );
 
-            toClear = expectedClients.stream( )
-                    .filter(client -> client.clearing(current))
-                    .toList( );
+            synchronized (expectedClients) {
+                toClear = expectedClients.stream( )
+                        .filter(client -> client.clearing(current))
+                        .toList( );
+            }
 
             synchronized (expectedClients) {
                 toClear.forEach(expectedClients::remove);
             }
-
-            onSpinWait( );
         }
     });
 
@@ -56,34 +55,34 @@ public class Authorizer {
         this.address = address;
     }
 
-    private synchronized String generateRandomAccessToken () {
+    private synchronized String generateRandomAccessToken (long clientID) {
         while (true) {
             String randomSecret = Helper.SHA512(randomUUID( ).toString( ));
-
-            if (expectedClients.stream( )
-                    .filter(client -> Objects.equals(client.token, randomSecret))
-                    .toList( )
-                    .isEmpty( )) {
-                return randomSecret;
+            synchronized (expectedClients) {
+                if (expectedClients.stream( )
+                        .noneMatch(client ->
+                                Objects.equals(client.token, randomSecret) &&
+                                client.id == clientID)) {
+                    return randomSecret;
+                }
             }
         }
     }
 
     private String addClient (Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException {
         if (!PermissionOperator.validateToken(id, secret, key)) throw new InvalidAuthorizationDataException( );
-        String token;
+        String token = generateRandomAccessToken(id);
 
         synchronized (expectedClients) {
-            token = generateRandomAccessToken( );
-
-            addClient(new ExpectedClient(token, id, key, ipAddress, agent));
+            while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent))){
+                token = generateRandomAccessToken(id);
+            }
         }
 
         return token;
     }
 
-    @Nullable
-    ExpectedClient validateClient (Long id, String token) {
+    @Nullable ExpectedClient validateClient (Long id, String token) {
         synchronized (expectedClients) {
             ExpectedClient expectedClient = expectedClients.stream( )
                     .filter(client -> client.id == id && Objects.equals(client.token, token))
@@ -98,8 +97,8 @@ public class Authorizer {
         }
     }
 
-    private synchronized void addClient (ExpectedClient client) {
-        expectedClients.add(client);
+    private synchronized boolean addClient (ExpectedClient client) {
+        return expectedClients.add(client);
     }
 
     void start () {
