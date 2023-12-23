@@ -42,8 +42,10 @@ public class Authorizer {
                         .toList( );
             }
 
-            synchronized (expectedClients) {
-                toClear.forEach(expectedClients::remove);
+            if (!toClear.isEmpty( )) {
+                synchronized (expectedClients) {
+                    toClear.forEach(expectedClients::remove);
+                }
             }
         }
     });
@@ -55,7 +57,7 @@ public class Authorizer {
         this.address = address;
     }
 
-    private synchronized String generateRandomAccessToken (long clientID) {
+    private String generateRandomAccessToken (long clientID) {
         while (true) {
             String randomSecret = Helper.SHA512(randomUUID( ).toString( ));
             synchronized (expectedClients) {
@@ -74,7 +76,7 @@ public class Authorizer {
         String token = generateRandomAccessToken(id);
 
         synchronized (expectedClients) {
-            while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent))){
+            while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent))) {
                 token = generateRandomAccessToken(id);
             }
         }
@@ -82,7 +84,7 @@ public class Authorizer {
         return token;
     }
 
-    @Nullable ExpectedClient validateClient (Long id, String token) {
+    protected @Nullable ExpectedClient validateClient (Long id, String token) {
         synchronized (expectedClients) {
             ExpectedClient expectedClient = expectedClients.stream( )
                     .filter(client -> client.id == id && Objects.equals(client.token, token))
@@ -97,8 +99,10 @@ public class Authorizer {
         }
     }
 
-    private synchronized boolean addClient (ExpectedClient client) {
-        return expectedClients.add(client);
+    private boolean addClient (ExpectedClient client) {
+        synchronized (expectedClients) {
+            return expectedClients.add(client);
+        }
     }
 
     void start () {
