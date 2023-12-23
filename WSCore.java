@@ -155,6 +155,18 @@ class WSCore extends WebSocketServer {
                                                 clients.getID(webSocket),
                                                 ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
                                         ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
+                case CHANNELS_USERS_INVITATIONS_CREATE -> {
+
+                }
+                case CHANNELS_USERS_INVITATIONS_DELETE -> {
+
+                }
+                case CHANNELS_USERS_JOIN -> {
+
+                }
+                case CHANNELS_USERS_LEAVE -> {
+
+                }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
         } catch (SQLException e) {

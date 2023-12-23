@@ -85,6 +85,15 @@ public class CommandsPatterns {
                     }
                 }
             }
+
+            public static class Invitations {
+                public static class Create {
+
+                }
+                public static class Delete{
+
+                }
+            }
         }
 
         public static class Administration {
@@ -169,7 +178,6 @@ public class CommandsPatterns {
                 public static class Join {
                     @JsonProperty(required = true)
                     String invitation;
-
                 }
 
                 public static class Leave {
