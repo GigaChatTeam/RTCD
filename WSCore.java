@@ -12,7 +12,6 @@ import java.text.ParseException;
 import java.util.NoSuchElementException;
 
 import static dbexecutors.SystemExecutor.logAuthentication;
-import static dbexecutors.SystemExecutor.logExit;
 
 
 class WSCore extends WebSocketServer {
@@ -30,23 +29,27 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
-        if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor( ));
-
         String[] connectionParams = clientHandshake.getResourceDescriptor( ).split("/");
 
         try {
             ExpectedClient validateClient = Starter.authorizer.validateClient(Long.valueOf(connectionParams[1]), connectionParams[2]);
             if (validateClient != null) {
-                clients.addClient(new ConnectedClient(webSocket, Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key)));
+                if (Starter.DEBUG > 2)
+                    System.out.println(STR."Client \{validateClient.id} try to connected");
+
+                clients.addClient(new ConnectedClient(webSocket, validateClient));
                 webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize(connectionParams[2]));
                 clients.changeClientConnectionStatus(webSocket, true);
                 logAuthentication(Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key), validateClient.agent);
+
+                if (Starter.DEBUG > 2)
+                    System.out.println(STR."Client \{validateClient.id} connected");
             } else webSocket.close(4002, "InvalidAuthorizationData");
         } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
             webSocket.close(1007, "InsufficientData");
         } catch (Exception e) {
             e.printStackTrace( );
-            webSocket.close(1011, "InsufficientData");
+            webSocket.close(1011, "InternalServerError");
         }
     }
 
@@ -170,13 +173,14 @@ class WSCore extends WebSocketServer {
     }
 
     @Override
-    public void onClose (WebSocket webSocket, int status, String reason, boolean b) {
-        ConnectedClient client = clients.getClient(webSocket);
+    public void onClose (WebSocket webSocket, int status, String reason, boolean remote) {
+        if (Starter.DEBUG > 2)
+            System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected, \{Helper.firstNonNull(reason, "reason not specified")}, \{remote ? "remote" : "local"}");
+
+        if (!remote) return;
         try {
-            if (client != null) {
-                logExit(client.id, client.key);
-            }
-        } catch (SQLException e) {
+            clients.getClient(webSocket).close(1001, "");
+        } catch (SQLException | NullPointerException e) {
             e.printStackTrace( );
         } finally {
             clients.removeClient(webSocket);
@@ -185,14 +189,13 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onError (WebSocket webSocket, Exception e) {
-        if (Starter.DEBUG > 1) e.printStackTrace( );
+        if (Starter.DEBUG > 2) e.printStackTrace( );
+        if (Starter.DEBUG > 1)
+            System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected with error");
 
-        ConnectedClient client = clients.getClient(webSocket);
         try {
-            if (client != null) {
-                logExit(client.id, client.key);
-            }
-        } catch (SQLException ex) {
+            clients.getClient(webSocket).close(1001, "InternalServerError");
+        } catch (SQLException | NullPointerException ex) {
             ex.printStackTrace( );
         } finally {
             clients.removeClient(webSocket);

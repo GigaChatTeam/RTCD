@@ -1,9 +1,11 @@
 import DataThreads.Channel;
 import org.java_websocket.WebSocket;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.HashSet;
 
+import static dbexecutors.SystemExecutor.logAuthentication;
 import static dbexecutors.SystemExecutor.logExit;
 
 public class ConnectedClient {
@@ -14,10 +16,12 @@ public class ConnectedClient {
 
     public boolean status = false;
 
-    public ConnectedClient (WebSocket sock, long id, String key) {
-        this.socket = sock;
-        this.id = id;
-        this.key = key;
+    public ConnectedClient (@NotNull WebSocket webSocket, @NotNull ExpectedClient expectedClient) throws SQLException {
+        logAuthentication(expectedClient.id, expectedClient.key, expectedClient.agent);
+
+        this.socket = webSocket;
+        this.id = expectedClient.id;
+        this.key = expectedClient.key;
     }
 
     public void addListenChannel (long channel, boolean canPost) {

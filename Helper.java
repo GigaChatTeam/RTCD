@@ -1,12 +1,15 @@
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class Helper {
     static String SHA512 (String string) {
@@ -26,6 +29,13 @@ public class Helper {
         }
 
         return sb.toString( );
+    }
+
+    public static @Nullable Object firstNonNull (Object... objects) {
+        return Arrays.stream(objects)
+                .filter(Objects::nonNull)
+                .findFirst( )
+                .orElse(null);
     }
 
     static final class Constants {
