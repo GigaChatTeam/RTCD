@@ -111,7 +111,7 @@ class WSCore extends WebSocketServer {
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                             clients.getID(webSocket),
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                            ChannelsExecutor.Messages.post(
+                                            ChannelsExecutor.Messages.postTextMessage(
                                                     clients.getID(webSocket),
                                                     ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                                     ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
