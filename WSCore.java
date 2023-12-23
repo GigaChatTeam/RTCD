@@ -175,7 +175,7 @@ class WSCore extends WebSocketServer {
     @Override
     public void onClose (WebSocket webSocket, int status, String reason, boolean remote) {
         if (Starter.DEBUG > 2)
-            System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected, \{Helper.firstNonNull(reason, "reason not specified")}, \{remote ? "remote" : "local"}");
+            System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected, by reason \{Helper.firstNonNull(reason, "not specified")}, \{remote ? "remote" : "local"}");
 
         if (!remote) return;
         try {
