@@ -42,7 +42,7 @@ class Clients {
         return clients.containsKey(webSocket);
     }
 
-    public void addClient (ConnectedClient client) {
+    public synchronized void addClient (ConnectedClient client) {
         clients.put(client.socket, client);
     }
 
@@ -55,7 +55,7 @@ class Clients {
                 .anyMatch(c -> c.id == client);
     }
 
-    public void removeClient (WebSocket socket) {
+    public synchronized void removeClient (WebSocket socket) {
         clients.remove(socket);
     }
 
@@ -96,11 +96,7 @@ class Clients {
     }
 
     public long getID (WebSocket webSocket) {
-        return clients.values( ).parallelStream( )
-                .filter(client -> client.socket == webSocket)
-                .map(client -> client.id)
-                .findFirst( )
-                .orElse(-1L);
+        return clients.get(webSocket).id;
     }
 
     public void changeClientConnectionStatus (WebSocket webSocket, boolean status) {

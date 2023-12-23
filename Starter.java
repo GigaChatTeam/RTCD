@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import static java.lang.Thread.onSpinWait;
+
 public class Starter {
     public static volatile boolean running = false;
 
@@ -19,8 +21,8 @@ public class Starter {
     static Authorizer authorizer;
 
     static {
-        JsonIteratorExtra.UUIDSupport.registerModule( );
-        new JsonIteratorExtra.SQLTimestampSupport(Helper.Constants.timestamp).registerModule( );
+        JsonIteratorExtra.SQLTimestampSupport.registerHandler( );
+        JsonIteratorExtra.UUIDSupport.registerHandler( );
     }
 
     static {
@@ -33,11 +35,11 @@ public class Starter {
         }
     }
 
-    public static void main (String[] args) throws IOException {
+    public static void main (String[] args) {
         try {
             File file = new File("./settings.ini");
 
-            if (!file.createNewFile( )) {
+            if (file.createNewFile( )) {
                 createConfiguration(file);
             }
 
@@ -55,27 +57,34 @@ public class Starter {
 
         running = true;
 
-        wsCore = new WSCore(wsCorePort);
-        authorizer = new Authorizer(new InetSocketAddress(authorizerPort), 0);
+        try {
+            wsCore = new WSCore(wsCorePort);
+            authorizer = new Authorizer(new InetSocketAddress(authorizerPort), 0);
+        } catch (Exception e) {
+            System.out.println("Initialize servers`s cores error");
+            e.printStackTrace( );
+            System.exit(1);
+        }
 
         authorizer.start( );
         wsCore.start( );
         Console.start( );
 
-        while (running) {
-            Thread.onSpinWait( );
-        }
+        while (running) onSpinWait( );
 
         try {
             wsCore.stop( );
-            System.out.println("WSCore thread has been stopped");
         } catch (InterruptedException e) {
-            System.out.println("WSCore thread has been stopped");
             e.printStackTrace( );
+        } finally {
+            System.out.println("WSCore thread has been stopped");
         }
 
-        authorizer.stop( );
-        System.out.println("HTTP Authorizer thread has been stopped");
+        try {
+            authorizer.stop( );
+        } finally {
+            System.out.println("HTTP Authorizer thread has been stopped");
+        }
     }
 
     private static void createConfiguration (File file) throws IOException {

@@ -34,27 +34,23 @@ public abstract class DBOperator {
     }
 
     static {
+        database = config.get("database", "base", String.class);
+        user = config.get("database", "user", String.class);
+        password = config.get("database", "password", String.class);
+        host = config.get("database", "host", String.class);
+        port = config.get("database", "port", int.class);
+        applicationName = String.format(
+                config.get("database", "application", String.class),
+                config.get("server", "id", String.class));
+
+        url = STR."jdbc:postgresql://\{host}:\{port}/\{database}?ApplicationName=\{encode(applicationName, StandardCharsets.UTF_8)}";
+
         try {
-            database = config.get("database", "base", String.class);
-            user = config.get("database", "user", String.class);
-            password = config.get("database", "password", String.class);
-            host = config.get("database", "host", String.class);
-            port = config.get("database", "port", int.class);
-            applicationName = String.format(
-                    config.get("database", "application", String.class),
-                    config.get("server", "id", String.class));
-
-            url = STR."jdbc:postgresql://\{host}:\{port}/\{database}?ApplicationName=\{encode(applicationName, StandardCharsets.UTF_8)}";
-
-            try {
-                conn = DriverManager.getConnection(url, user, password);
-            } catch (SQLException e) {
-                System.out.println("DB connection error");
-                e.printStackTrace( );
-                System.exit(1);
-            }
-        } catch (Exception e) {
+            conn = DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            System.out.println("DB connection error");
             e.printStackTrace( );
+            System.exit(1);
         }
     }
 }

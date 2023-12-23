@@ -6,7 +6,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import dbexecutors.PermissionOperator;
-import dbexecutors.SystemExecutor;
 import exceptions.InvalidAuthorizationDataException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,9 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+import static dbexecutors.SystemExecutor.logInterruptedLogin;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;
+import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 
 public class Authorizer {
@@ -35,15 +36,17 @@ public class Authorizer {
         while (Starter.running) {
             long current = Date.from(ofEpochSecond(currentTimeMillis( ))).getTime( );
 
-            toClear = expectedClients.stream( )
-                    .filter(client -> client.clearing(current))
-                    .toList( );
-
             synchronized (expectedClients) {
-                toClear.forEach(expectedClients::remove);
+                toClear = expectedClients.stream( )
+                        .filter(client -> client.clearing(current))
+                        .toList( );
             }
 
-            Thread.onSpinWait( );
+            if (!toClear.isEmpty( )) {
+                synchronized (expectedClients) {
+                    toClear.forEach(expectedClients::remove);
+                }
+            }
         }
     });
 
@@ -54,34 +57,34 @@ public class Authorizer {
         this.address = address;
     }
 
-    private synchronized String generateRandomAccessToken () {
+    private String generateRandomAccessToken (long clientID) {
         while (true) {
             String randomSecret = Helper.SHA512(randomUUID( ).toString( ));
-
-            if (expectedClients.stream( )
-                    .filter(client -> Objects.equals(client.token, randomSecret))
-                    .toList( )
-                    .isEmpty( )) {
-                return randomSecret;
+            synchronized (expectedClients) {
+                if (expectedClients.stream( )
+                        .noneMatch(client ->
+                                Objects.equals(client.token, randomSecret) &&
+                                client.id == clientID)) {
+                    return randomSecret;
+                }
             }
         }
     }
 
     private String addClient (Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException {
         if (!PermissionOperator.validateToken(id, secret, key)) throw new InvalidAuthorizationDataException( );
-        String token;
+        String token = generateRandomAccessToken(id);
 
         synchronized (expectedClients) {
-            token = generateRandomAccessToken( );
-
-            addClient(new ExpectedClient(token, id, key, ipAddress, agent));
+            while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent))) {
+                token = generateRandomAccessToken(id);
+            }
         }
 
         return token;
     }
 
-    @Nullable
-    ExpectedClient validateClient (Long id, String token) {
+    protected @Nullable ExpectedClient validateClient (Long id, String token) {
         synchronized (expectedClients) {
             ExpectedClient expectedClient = expectedClients.stream( )
                     .filter(client -> client.id == id && Objects.equals(client.token, token))
@@ -96,8 +99,10 @@ public class Authorizer {
         }
     }
 
-    private synchronized void addClient (ExpectedClient client) {
-        expectedClients.add(client);
+    private boolean addClient (ExpectedClient client) {
+        synchronized (expectedClients) {
+            return expectedClients.add(client);
+        }
     }
 
     void start () {
@@ -110,7 +115,7 @@ public class Authorizer {
         authorizeServer.stop(0);
     }
 
-    public static class AuthorizeRequest {
+    private static class AuthorizeRequest {
         @JsonProperty(required = true)
         Long client;
         @JsonProperty(required = true)
@@ -127,19 +132,28 @@ public class Authorizer {
 
             try {
                 if (!"POST".equals(exchange.getRequestMethod( ))) {
-                    exchange.sendResponseHeaders(405, 0);
+                    exchange.sendResponseHeaders(405, Responses.methodNotAllowed.length( ));
                     OutputStream os = exchange.getResponseBody( );
-                    os.write("".getBytes( ));
+                    os.write(Responses.methodNotAllowed.getBytes( ));
                     os.close( );
+                    exchange.close( );
                     return;
                 }
 
-                request = JsonIterator.deserialize(new String(exchange.getRequestBody( ).readAllBytes( ), StandardCharsets.UTF_8), AuthorizeRequest.class);
+                request = JsonIterator.deserialize(
+                        new String(
+                                exchange.getRequestBody( ).readAllBytes( ),
+                                StandardCharsets.UTF_8),
+                        AuthorizeRequest.class);
                 headers = exchange.getRequestHeaders( );
 
-                String response = format(Responses.success, addClient(request.client, request.secret, request.key,
-                        exchange.getRemoteAddress( ).getHostName( ),
-                        headers.get("User-Agent").getFirst( )));
+                String response = format(
+                        Responses.success, addClient(
+                                request.client,
+                                request.secret,
+                                request.key,
+                                exchange.getRemoteAddress( ).getHostName( ),
+                                headers.get("User-Agent").getFirst( )));
 
                 exchange.sendResponseHeaders(200, response.length( ));
                 OutputStream os = exchange.getResponseBody( );
@@ -157,27 +171,33 @@ public class Authorizer {
                 os.close( );
 
                 try {
-                    SystemExecutor.logInterruptedLogin(
-                            request.client, Helper.SHA512(request.key), headers.get("User-Agent").getFirst( ));
+                    logInterruptedLogin(
+                            requireNonNull(request).client,
+                            Helper.SHA512(request.key),
+                            headers.get("User-Agent").getFirst( ));
                 } catch (SQLException ex) {
                     ex.printStackTrace( );
                 }
             } catch (IOException _) {
             } catch (Exception e) {
                 e.printStackTrace( );
-                exchange.sendResponseHeaders(400, Responses.serverError.length( ));
+                exchange.sendResponseHeaders(500, Responses.internalServerError.length( ));
                 OutputStream os = exchange.getResponseBody( );
-                os.write(Responses.serverError.getBytes( ));
+                os.write(Responses.internalServerError.getBytes( ));
                 os.close( );
             }
+
+            exchange.close( );
         }
 
         static class Responses {
-            static final String lackOfData = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"LackOfData\"}";
-            static final String serverError = "{\"status\":\"Refused\",\"reason\":\"InternalServerError\"}";
-            static final String invalidAuthorizationData = "{\"status\":\"Refused\",\"reason\":\"InvalidAuthorizationData\"}";
+            static final String success = "{\"status\":\"Done\",\"token\":\"%s\"}"; // 200 HTTP status code
 
-            static final String success = "{\"status\":\"Done\",\"token\":\"%s\"}";
+            static final String lackOfData = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"LackOfData\"}"; // 400 HTTP status code
+            static final String invalidAuthorizationData = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"InvalidAuthorizationData\"}"; // 403 HTTP status code
+            static final String methodNotAllowed = "{\"status\":\"Refused\",\"reason\":\"BadRequest\",\"description\":\"MethodNotAllowed\"}"; // 405 HTTP status code
+
+            static final String internalServerError = "{\"status\":\"Refused\",\"reason\":\"ServerError\",\"description\":\"InternalServerError\"}"; // 500 HTTP status code
         }
     }
 }

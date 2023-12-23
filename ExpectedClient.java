@@ -1,4 +1,5 @@
 import java.util.Date;
+import java.util.Objects;
 
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;
@@ -25,5 +26,17 @@ public class ExpectedClient {
 
     boolean clearing (long currentTimeMillis) {
         return ((currentTimeMillis - start) >= 20000000);
+    }
+
+    @Override
+    public boolean equals (Object obj) {
+        if (obj instanceof ExpectedClient) {
+            return ((ExpectedClient) obj).id == id && Objects.equals(((ExpectedClient) obj).key, key);
+        }
+        return false;
+    }
+
+    public boolean equals (long id, String key) {
+        return id == this.id && Objects.equals(key, this.key);
     }
 }
