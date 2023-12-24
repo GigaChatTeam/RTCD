@@ -157,11 +157,22 @@ class WSCore extends WebSocketServer {
                                                 clients.getID(webSocket),
                                                 ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
                                         ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
-                case CHANNELS_USERS_INVITATIONS_CREATE -> {
-
-                }
+                case CHANNELS_USERS_INVITATIONS_CREATE -> webSocket.send(
+                        new ResponsesPatterns.Channels.Invitations.Create(
+                                clients.getID(webSocket),
+                                ChannelsExecutor.Invitations.create(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).channel,
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).expiration,
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).permittedUses)).serialize(packet.hash));
                 case CHANNELS_USERS_INVITATIONS_DELETE -> {
+                    ChannelsExecutor.Invitations.delete(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.System.Invitations.Delete) packet.postData).uri);
 
+                    webSocket.send(
+                            new ResponsesPatterns.Channels.Invitations.Delete(
+                                    ((CommandsPatterns.Channels.System.Invitations.Delete) packet.postData).uri).serialize(packet.hash));
                 }
                 case CHANNELS_USERS_JOIN -> webSocket.send(
                         new ResponsesPatterns.Channels.User.Presence.Join(
