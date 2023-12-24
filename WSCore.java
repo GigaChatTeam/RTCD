@@ -1,10 +1,13 @@
 import com.jsoniter.spi.JsonException;
 import dbexecutors.ChannelsExecutor;
 import exceptions.AccessDenied;
+import exceptions.AlreadyCompleted;
+import exceptions.NotFound;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
@@ -24,12 +27,12 @@ class WSCore extends WebSocketServer {
         this.port = port;
     }
 
-    private boolean clientIDVerifier (WebSocket webSocket, long id) {
+    private boolean clientIDVerifier (@NotNull WebSocket webSocket, long id) {
         return id == clients.getID(webSocket) && id != -1;
     }
 
     @Override
-    public void onOpen (WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
+    public void onOpen (@NotNull WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
         if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor( ));
 
         String[] connectionParams = clientHandshake.getResourceDescriptor( ).split("/");
@@ -51,7 +54,7 @@ class WSCore extends WebSocketServer {
     }
 
     @Override
-    public void onMessage (WebSocket webSocket, String message) {
+    public void onMessage (@NotNull WebSocket webSocket, @NotNull String message) {
         if (!clients.getClientConnectionStatus(webSocket)) {
             webSocket.send(SystemResponses.Errors.Systems.NOT_AUTHORIZED( ));
             return;
@@ -120,34 +123,68 @@ class WSCore extends WebSocketServer {
                                             null,
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
                         }
-                        case "VOICE" -> {
-                            // TODO create SQL to voice messages
-                        }
-                        case "VIDEO" -> {
-                            // TODO create SQL to video messages
-                        }
                         case null, default -> throw new ParseException("", 1);
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
+                    if (!ChannelsExecutor.Users.Presence.isClientOnChannel(
                             clients.getID(webSocket),
                             ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
                         throw new AccessDenied( );
 
-                    clients.addListeningClientToChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel, true);
+                    clients.addListeningClientToChannel(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel,
+                            true);
 
-                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.AddListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(
+                            new ResponsesPatterns.Channels.System.Notification.AddListening(
+                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_LISTENING_REMOVE -> {
-                    clients.removeListeningClientFromChannel(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
+                    clients.removeListeningClientFromChannel(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.System.Notification.Listening.Remove) packet.postData).channel);
 
-                    webSocket.send(new ResponsesPatterns.Channels.System.Notification.RemoveListening(((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
+                    webSocket.send(
+                            new ResponsesPatterns.Channels.System.Notification.RemoveListening(
+                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
                 case CHANNELS_SYSTEM_CREATE ->
-                        webSocket.send(new ResponsesPatterns.Channels.System.Control.Create(ChannelsExecutor.create(clients.getID(webSocket), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title), ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
-                case SYSTEM_TTOKENS_GENERATE -> {
+                        webSocket.send(
+                                new ResponsesPatterns.Channels.System.Control.Create(
+                                        ChannelsExecutor.create(
+                                                clients.getID(webSocket),
+                                                ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
+                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
+                case CHANNELS_USERS_INVITATIONS_CREATE -> webSocket.send(
+                        new ResponsesPatterns.Channels.Invitations.Create(
+                                clients.getID(webSocket),
+                                ChannelsExecutor.Invitations.create(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).channel,
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).expiration,
+                                        ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).permittedUses)).serialize(packet.hash));
+                case CHANNELS_USERS_INVITATIONS_DELETE -> {
+                    ChannelsExecutor.Invitations.delete(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.System.Invitations.Delete) packet.postData).uri);
 
+                    webSocket.send(
+                            new ResponsesPatterns.Channels.Invitations.Delete(
+                                    ((CommandsPatterns.Channels.System.Invitations.Delete) packet.postData).uri).serialize(packet.hash));
+                }
+                case CHANNELS_USERS_JOIN -> webSocket.send(
+                        new ResponsesPatterns.Channels.User.Presence.Join(
+                                ChannelsExecutor.Users.Presence.join(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.User.Presence.Join) packet.postData).invitation)).serialize(packet.hash));
+                case CHANNELS_USERS_LEAVE -> {
+                    ChannelsExecutor.Users.Presence.leave(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel);
+
+                    webSocket.send(new ResponsesPatterns.Channels.User.Presence.Leave().serialize(packet.hash));
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
@@ -160,17 +197,20 @@ class WSCore extends WebSocketServer {
         } catch (AccessDenied e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
             webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AccessDenied( ).serialize(packet.hash));
-        } /* catch (NotFound e) {
-            if (Starter.DEBUG >= 2) e.printStackTrace();
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.NotFound().serialize(packet.hash));
-        } */ catch (Throwable e) {
+        } catch (AlreadyCompleted e) {
+            if (Starter.DEBUG >= 2) e.printStackTrace( );
+            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AlreadyCompleted( ).serialize(packet.hash));
+        } catch (NotFound e) {
+            if (Starter.DEBUG >= 2) e.printStackTrace( );
+            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.NotFound( ).serialize(packet.hash));
+        } catch (Throwable e) {
             System.out.println("----- Not handling exception -----");
             e.printStackTrace( );
         }
     }
 
     @Override
-    public void onClose (WebSocket webSocket, int status, String reason, boolean b) {
+    public void onClose (@NotNull WebSocket webSocket, int status, @Nullable String reason, boolean b) {
         ConnectedClient client = clients.getClient(webSocket);
         try {
             if (client != null) {
@@ -184,7 +224,7 @@ class WSCore extends WebSocketServer {
     }
 
     @Override
-    public void onError (WebSocket webSocket, Exception e) {
+    public void onError (@NotNull WebSocket webSocket, @NotNull Exception e) {
         e.printStackTrace( );
         ConnectedClient client = clients.getClient(webSocket);
         try {

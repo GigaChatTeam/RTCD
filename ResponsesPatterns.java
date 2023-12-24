@@ -55,9 +55,18 @@ public class ResponsesPatterns {
                     }
                 }
 
+                public static class AlreadyCompleted {
+                    @JsonIgnore
+                    static final String intention = "212";
+
+                    String serialize (String controlHash) {
+                        return STR."\{intention}%\{controlHash}%{}";
+                    }
+                }
+
                 public static class NotFound {
                     @JsonIgnore
-                    static final String intention = "89";
+                    static final String intention = "213";
 
                     String serialize (String controlHash) {
                         return STR."\{intention}%\{controlHash}%{}";
@@ -194,6 +203,70 @@ public class ResponsesPatterns {
                             return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                         }
                     }
+                }
+            }
+
+            public static class Presence {
+                public static class Join {
+                    @JsonIgnore
+                    String intention = "171";
+
+                    long channel;
+
+                    Join (long channel) {
+                        this.channel = channel;
+                    }
+
+                    String serialize (String controlHash) {
+                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    }
+                }
+
+                public static class Leave {
+                    @JsonIgnore
+                    String intention = "170";
+
+                    public Leave () {
+
+                    }
+
+                    String serialize (String controlHash) {
+                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    }
+                }
+            }
+        }
+
+        public static class Invitations {
+            public static class Create {
+                @JsonIgnore
+                static final String intention = "175";
+
+                long creator;
+                String uri;
+
+                Create (long creator, String uri) {
+                    this.creator = creator;
+                    this.uri = uri;
+                }
+
+                String serialize (String controlHash) {
+                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                }
+            }
+
+            public static class Delete {
+                @JsonIgnore
+                static final String intention = "174";
+
+                String uri;
+
+                Delete (String uri) {
+                    this.uri = uri;
+                }
+
+                String serialize (String controlHash) {
+                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
                 }
             }
         }

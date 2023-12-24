@@ -27,8 +27,8 @@ public enum Commands {
     CHANNELS_SYSTEM_LISTENING_ADD("B1", CommandsPatterns.Channels.System.Notification.Listening.Add.class),
     CHANNELS_SYSTEM_LISTENING_REMOVE("B0", CommandsPatterns.Channels.System.Notification.Listening.Remove.class),
     // Channel invitations
-    CHANNELS_USERS_INVITATIONS_CREATE("175", null),
-    CHANNELS_USERS_INVITATIONS_DELETE("174", null),
+    CHANNELS_USERS_INVITATIONS_CREATE("175", CommandsPatterns.Channels.System.Invitations.Create.class),
+    CHANNELS_USERS_INVITATIONS_DELETE("174", CommandsPatterns.Channels.System.Invitations.Delete.class),
     // Presence in channels
     CHANNELS_USERS_JOIN("171", CommandsPatterns.Channels.User.Presence.Join.class),
     CHANNELS_USERS_LEAVE("170", CommandsPatterns.Channels.User.Presence.Leave.class),
