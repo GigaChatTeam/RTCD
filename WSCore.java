@@ -1,6 +1,8 @@
 import com.jsoniter.spi.JsonException;
 import dbexecutors.ChannelsExecutor;
 import exceptions.AccessDenied;
+import exceptions.AlreadyCompleted;
+import exceptions.NotFound;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -125,7 +127,7 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Permissions.isClientOnChannel(
+                    if (!ChannelsExecutor.Users.Presence.isClientOnChannel(
                             clients.getID(webSocket),
                             ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
                         throw new AccessDenied( );
@@ -161,11 +163,17 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_USERS_INVITATIONS_DELETE -> {
 
                 }
-                case CHANNELS_USERS_JOIN -> {
-
-                }
+                case CHANNELS_USERS_JOIN -> webSocket.send(
+                        new ResponsesPatterns.Channels.User.Presence.Join(
+                                ChannelsExecutor.Users.Presence.join(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.User.Presence.Join) packet.postData).invitation)).serialize(packet.hash));
                 case CHANNELS_USERS_LEAVE -> {
+                    ChannelsExecutor.Users.Presence.leave(
+                            clients.getID(webSocket),
+                            ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel);
 
+                    webSocket.send(new ResponsesPatterns.Channels.User.Presence.Leave().serialize(packet.hash));
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
@@ -178,6 +186,12 @@ class WSCore extends WebSocketServer {
         } catch (AccessDenied e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
             webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AccessDenied( ).serialize(packet.hash));
+        } catch (AlreadyCompleted e) {
+            if (Starter.DEBUG >= 2) e.printStackTrace( );
+            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AlreadyCompleted( ).serialize(packet.hash));
+        } catch (NotFound e) {
+            if (Starter.DEBUG >= 2) e.printStackTrace( );
+            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.NotFound( ).serialize(packet.hash));
         } catch (Throwable e) {
             System.out.println("----- Not handling exception -----");
             e.printStackTrace( );

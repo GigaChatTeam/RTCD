@@ -1,10 +1,12 @@
 package dbexecutors;
 
 import exceptions.AccessDenied;
+import exceptions.AlreadyCompleted;
 import exceptions.NotFound;
 import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.postgresql.util.PSQLException;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,42 +33,7 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Users {
-        public static void join (long user, long channel, @NotNull String uri) throws SQLException, AccessDenied {
-            String sql = """
-                        SELECT channels.join_user(?, ?, ?)
-                    """;
-            PreparedStatement stmt;
-
-            stmt = conn.prepareStatement(sql);
-            stmt.setLong(1, user);
-            stmt.setLong(2, channel);
-            stmt.setString(3, uri);
-
-            ResultSet rs = stmt.executeQuery( );
-
-            rs.next( );
-
-            if (!rs.getBoolean(1)) throw new AccessDenied( );
-        }
-
-        public static void leave (long user, long channel) throws SQLException, AccessDenied {
-            String sql = """
-                        SELECT channels.leave_user(?, ?)
-                    """;
-            PreparedStatement stmt;
-
-            stmt = conn.prepareStatement(sql);
-            stmt.setLong(1, user);
-            stmt.setLong(2, channel);
-
-            ResultSet rs = stmt.executeQuery( );
-
-            rs.next( );
-
-            if (!rs.getBoolean(1)) throw new AccessDenied( );
-        }
-
-        public static class Permissions {
+        public static class Presence {
             public static boolean isClientOnChannel (long client, long channel) throws SQLException {
                 String sql = """
                             SELECT EXISTS (
@@ -89,6 +56,54 @@ public class ChannelsExecutor extends DBOperator {
                 rs.next( );
 
                 return rs.getBoolean(1);
+            }
+
+            public static long join (long user, @NotNull String channelInvitationURI) throws SQLException, AlreadyCompleted, NotFound {
+                String sql = """
+                            SELECT channels.join_user(?, ?)
+                        """;
+                PreparedStatement stmt;
+
+                stmt = conn.prepareStatement(sql);
+                stmt.setLong(1, user);
+                stmt.setString(2, channelInvitationURI);
+
+                ResultSet rs;
+                try {
+                    rs = stmt.executeQuery( );
+                } catch (PSQLException e) {
+                    if (e.getServerErrorMessage( ) == null) throw e;
+
+                    switch (e.getServerErrorMessage( ).getConstraint( )) {
+                        case "users_pkey" -> throw new AlreadyCompleted();
+                        case "invitations_check" -> throw new NotFound();
+                        case null, default -> throw e;
+                    }
+                }
+
+                rs.next( );
+
+                long channel = rs.getLong(1);
+
+                if (channel == 0) throw new NotFound();
+                return channel;
+            }
+
+            public static void leave (long id, long channel) throws SQLException, NotFound {
+                String sql = """
+                            SELECT channels.leave_user(?, ?)
+                        """;
+                PreparedStatement stmt;
+
+                stmt = conn.prepareStatement(sql);
+                stmt.setLong(1, id);
+                stmt.setLong(2, channel);
+
+                ResultSet rs = stmt.executeQuery( );
+
+                rs.next();
+
+                if (!rs.getBoolean(1)) throw new NotFound();
             }
         }
     }
