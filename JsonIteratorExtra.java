@@ -10,6 +10,8 @@ import java.util.UUID;
 
 import static com.jsoniter.spi.JsoniterSpi.registerTypeDecoder;
 import static com.jsoniter.spi.JsoniterSpi.registerTypeEncoder;
+import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 public class JsonIteratorExtra {
     public static class UUIDSupport implements Encoder, Decoder {
@@ -36,7 +38,16 @@ public class JsonIteratorExtra {
     public static class SQLTimestampSupport implements Encoder, Decoder {
         @Override
         public Timestamp decode (@NotNull JsonIterator jsonIterator) throws IOException {
-            return Timestamp.valueOf(jsonIterator.readString( ));
+            try {
+                String[] values = String.format("%.6f", jsonIterator.readDouble( )).split("\\.");
+
+                Timestamp result = new Timestamp(parseLong(values[0]) * 1000);
+                result.setNanos(parseInt(values[1]) * 1000);
+
+                return result;
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
 
         @Override
