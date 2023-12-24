@@ -7,7 +7,6 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
@@ -222,7 +221,7 @@ class WSCore extends WebSocketServer {
         if (!remote) return;
         try {
             clients.getClient(webSocket).close(1001, "");
-        } catch (NullPointerException e) {
+        } catch (SQLException | NullPointerException e) {
             e.printStackTrace( );
         } finally {
             clients.removeClient(webSocket);
