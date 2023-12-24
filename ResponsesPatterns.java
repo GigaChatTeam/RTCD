@@ -197,5 +197,39 @@ public class ResponsesPatterns {
                 }
             }
         }
+
+        public static class Invitations {
+            public static class Create {
+                @JsonIgnore
+                static final String intention = "175";
+
+                long creator;
+                String uri;
+
+                Create (long creator, String uri) {
+                    this.creator = creator;
+                    this.uri = uri;
+                }
+
+                String serialize (String controlHash) {
+                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                }
+            }
+
+            public static class Delete {
+                @JsonIgnore
+                static final String intention = "174";
+
+                String uri;
+
+                Delete (String uri) {
+                    this.uri = uri;
+                }
+
+                String serialize (String controlHash) {
+                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                }
+            }
+        }
     }
 }

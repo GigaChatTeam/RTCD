@@ -6,10 +6,7 @@ import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.UUID;
 
 public class ChannelsExecutor extends DBOperator {
@@ -94,15 +91,21 @@ public class ChannelsExecutor extends DBOperator {
     }
 
     public static class Invitations {
-        public static @NotNull String create (long user, long channel) throws SQLException, AccessDenied {
+        public static @NotNull String create (long user, long channel, @Nullable Timestamp expiration, @Nullable Integer permittedUses) throws SQLException, AccessDenied {
             String sql = """
-                        SELECT channels.create_invitation(?, ?)
+                        SELECT channels.create_invitation(?, ?, ?, ?)
                     """;
             PreparedStatement stmt;
 
             stmt = conn.prepareStatement(sql);
             stmt.setLong(1, user);
             stmt.setLong(2, channel);
+            stmt.setTimestamp(3, expiration);
+            if (permittedUses == null) {
+                stmt.setNull(4, Types.INTEGER);
+            } else {
+                stmt.setInt(4, permittedUses);
+            }
 
             ResultSet rs = stmt.executeQuery( );
 
@@ -114,9 +117,22 @@ public class ChannelsExecutor extends DBOperator {
             else throw new AccessDenied( );
         }
 
-//        public static void delete (long user, String uri) throws SQLException, AccessDenied {
-//
-//        }
+        public static void delete (long user, @NotNull String uri) throws SQLException, NotFound {
+            String sql = """
+                        SELECT channels.delete_invitation(?, ?)
+                    """;
+            PreparedStatement stmt;
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, uri);
+            stmt.setLong(2, user);
+
+            ResultSet rs = stmt.executeQuery( );
+
+            rs.next( );
+
+            if (!rs.getBoolean(1)) throw new NotFound();
+        }
     }
 
     public static class Messages {
