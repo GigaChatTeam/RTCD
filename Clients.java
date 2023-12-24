@@ -1,5 +1,6 @@
 import org.java_websocket.WebSocket;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 class Clients {
@@ -105,6 +106,19 @@ class Clients {
 
     public boolean getClientConnectionStatus (WebSocket webSocket) {
         return clients.get(webSocket).status;
+    }
+
+    public void closeAllClients (int code, String reason) {
+        synchronized (clients) {
+            clients.values( ).parallelStream( )
+                    .forEach(client -> {
+                        try {
+                            client.close(code, reason);
+                        } catch (SQLException e) {
+                            if (Starter.DEBUG > 1) e.printStackTrace( );
+                        }
+                    });
+        }
     }
 
     public HashMap<WebSocket, ConnectedClient> getClients () {
