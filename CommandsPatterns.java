@@ -85,6 +85,22 @@ public class CommandsPatterns {
                     }
                 }
             }
+
+            public static class Invitations {
+                public static class Create {
+                    @JsonProperty(required = true)
+                    long channel;
+
+                    @JsonProperty("max-uses")
+                    Integer permittedUses;
+                    Timestamp expiration;
+                }
+
+                public static class Delete {
+                    @JsonProperty(required = true)
+                    String uri;
+                }
+            }
         }
 
         public static class Administration {
@@ -169,7 +185,6 @@ public class CommandsPatterns {
                 public static class Join {
                     @JsonProperty(required = true)
                     String invitation;
-
                 }
 
                 public static class Leave {
