@@ -1,4 +1,4 @@
-package dbexecutors;
+package dbexecutors.sql;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 import static dbexecutors.Helper.verifierBCrypt;
 
-public class PermissionOperator extends DBOperator {
+public class PermissionOperator extends SQLAdapter {
     public static boolean validateToken (long id, @NotNull String secret, @NotNull String key) {
         String sql = """
                     SELECT

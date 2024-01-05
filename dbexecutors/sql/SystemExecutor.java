@@ -1,4 +1,4 @@
-package dbexecutors;
+package dbexecutors.sql;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class SystemExecutor extends DBOperator {
+public class SystemExecutor extends SQLAdapter {
     public static void logAuthentication (long client, @NotNull String key, @Nullable String agent, boolean status) throws SQLException {
         String sql = """
                     INSERT INTO users.logins (client, key, login, agent, successfully)

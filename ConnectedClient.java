@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.util.HashSet;
 
-import static dbexecutors.SystemExecutor.logAuthentication;
-import static dbexecutors.SystemExecutor.logExit;
+import static dbexecutors.sql.SystemExecutor.logAuthentication;
+import static dbexecutors.sql.SystemExecutor.logExit;
 
 public class ConnectedClient {
     public final long id;

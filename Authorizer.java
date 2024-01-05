@@ -5,7 +5,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import dbexecutors.PermissionOperator;
+import dbexecutors.sql.PermissionOperator;
 import exceptions.InvalidAuthorizationDataException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static dbexecutors.SystemExecutor.logInterruptedLogin;
+import static dbexecutors.sql.SystemExecutor.logInterruptedLogin;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;

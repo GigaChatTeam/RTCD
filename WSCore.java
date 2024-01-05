@@ -1,5 +1,5 @@
 import com.jsoniter.spi.JsonException;
-import dbexecutors.ChannelsExecutor;
+import dbexecutors.sql.ChannelsExecutor;
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
 import exceptions.NotFound;
@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
-import static dbexecutors.SystemExecutor.logAuthentication;
+import static dbexecutors.sql.SystemExecutor.logAuthentication;
 
 
 class WSCore extends WebSocketServer {

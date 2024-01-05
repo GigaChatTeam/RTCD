@@ -1,4 +1,4 @@
-package dbexecutors;
+package dbexecutors.sql;
 
 import org.ini4j.Ini;
 
@@ -11,7 +11,7 @@ import java.sql.SQLException;
 
 import static java.net.URLEncoder.encode;
 
-public abstract class DBOperator {
+public abstract class SQLAdapter {
     static String url;
 
     static Ini config;

@@ -1,4 +1,4 @@
-package dbexecutors;
+package dbexecutors.sql;
 
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
@@ -11,7 +11,7 @@ import org.postgresql.util.PSQLException;
 import java.sql.*;
 import java.util.UUID;
 
-public class ChannelsExecutor extends DBOperator {
+public class ChannelsExecutor extends SQLAdapter {
     public static long create (long owner, @NotNull String title) throws SQLException {
         String sql = """
                     SELECT channels.create(?, ?)
