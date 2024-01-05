@@ -1,5 +1,5 @@
 import com.jsoniter.spi.JsonException;
-import dbexecutors.sql.ChannelsExecutor;
+import dbexecutors.Channels;
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
 import exceptions.NotFound;
@@ -118,7 +118,7 @@ class WSCore extends WebSocketServer {
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                             clients.getID(webSocket),
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                            ChannelsExecutor.Messages.postTextMessage(
+                                            Channels.Messages.postTextMessage(
                                                     clients.getID(webSocket),
                                                     ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                                     ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
@@ -131,7 +131,7 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!ChannelsExecutor.Users.Presence.isClientOnChannel(
+                    if (!Channels.Users.Presence.isClientOnChannel(
                             clients.getID(webSocket),
                             ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
                         throw new AccessDenied( );
@@ -157,20 +157,20 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_SYSTEM_CREATE ->
                         webSocket.send(
                                 new ResponsesPatterns.Channels.System.Control.Create(
-                                        ChannelsExecutor.create(
+                                        Channels.create(
                                                 clients.getID(webSocket),
                                                 ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
                                         ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case CHANNELS_USERS_INVITATIONS_CREATE -> webSocket.send(
                         new ResponsesPatterns.Channels.Invitations.Create(
                                 clients.getID(webSocket),
-                                ChannelsExecutor.Invitations.create(
+                                Channels.Invitations.create(
                                         clients.getID(webSocket),
                                         ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).channel,
                                         ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).expiration,
                                         ((CommandsPatterns.Channels.System.Invitations.Create) packet.postData).permittedUses)).serialize(packet.hash));
                 case CHANNELS_USERS_INVITATIONS_DELETE -> {
-                    ChannelsExecutor.Invitations.delete(
+                    Channels.Invitations.delete(
                             clients.getID(webSocket),
                             ((CommandsPatterns.Channels.System.Invitations.Delete) packet.postData).uri);
 
@@ -180,11 +180,11 @@ class WSCore extends WebSocketServer {
                 }
                 case CHANNELS_USERS_JOIN -> webSocket.send(
                         new ResponsesPatterns.Channels.User.Presence.Join(
-                                ChannelsExecutor.Users.Presence.join(
+                                Channels.Users.Presence.join(
                                         clients.getID(webSocket),
                                         ((CommandsPatterns.Channels.User.Presence.Join) packet.postData).invitation)).serialize(packet.hash));
                 case CHANNELS_USERS_LEAVE -> {
-                    ChannelsExecutor.Users.Presence.leave(
+                    Channels.Users.Presence.leave(
                             clients.getID(webSocket),
                             ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel);
 
