@@ -1,7 +1,11 @@
+import dbexecutors.sql.PolledConnection;
 import org.java_websocket.WebSocket;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+
+import static dbexecutors.sql.PoolController.getConnection;
+import static dbexecutors.sql.PoolController.returnConnection;
 
 class Clients {
     private final HashMap<WebSocket, ConnectedClient> clients = new HashMap<>( );
@@ -109,16 +113,20 @@ class Clients {
     }
 
     public void closeAllClients (int code, String reason) {
+        PolledConnection dbConnection = getConnection();
+
         synchronized (clients) {
             clients.values( ).parallelStream( )
                     .forEach(client -> {
                         try {
-                            client.close(code, reason);
+                            client.close(dbConnection, code, reason);
                         } catch (SQLException e) {
                             if (Starter.DEBUG > 1) e.printStackTrace( );
                         }
                     });
         }
+
+        returnConnection(dbConnection);
     }
 
     public HashMap<WebSocket, ConnectedClient> getClients () {

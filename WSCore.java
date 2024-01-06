@@ -1,5 +1,7 @@
 import com.jsoniter.spi.JsonException;
 import dbexecutors.Channels;
+import dbexecutors.sql.PolledConnection;
+import dbexecutors.sql.PoolController;
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
 import exceptions.NotFound;
@@ -35,6 +37,8 @@ class WSCore extends WebSocketServer {
 
         String[] connectionParams = clientHandshake.getResourceDescriptor( ).split("/");
 
+        PolledConnection connection = PoolController.getConnection( );
+
         try {
             ExpectedClient validateClient = Starter.authorizer.validateClient(Long.valueOf(connectionParams[1]), connectionParams[2]);
             if (validateClient != null) {
@@ -44,7 +48,11 @@ class WSCore extends WebSocketServer {
                 clients.addClient(new ConnectedClient(webSocket, validateClient));
                 webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize(connectionParams[2]));
                 clients.changeClientConnectionStatus(webSocket, true);
-                logAuthentication(Long.parseLong(connectionParams[1]), Helper.SHA512(validateClient.key), validateClient.agent);
+                logAuthentication(
+                        connection.conn,
+                        Long.parseLong(connectionParams[1]),
+                        Helper.SHA512(validateClient.key),
+                        validateClient.agent);
 
                 if (Starter.DEBUG > 2)
                     System.out.println(STR."Client \{validateClient.id} connected");
@@ -54,6 +62,8 @@ class WSCore extends WebSocketServer {
         } catch (Exception e) {
             e.printStackTrace( );
             webSocket.close(1011, "InternalServerError");
+        } finally {
+            PoolController.returnConnection(connection);
         }
     }
 

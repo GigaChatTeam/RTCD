@@ -9,8 +9,9 @@ public class PolledConnection {
     protected final Date created;
     protected long issued;
 
-    public PolledConnection (Connection conn) {
+    public PolledConnection (Connection conn) throws SQLException {
         this.conn = conn;
+        this.conn.setAutoCommit(false);
         this.created = new Date(System.currentTimeMillis());
         this.issued = System.currentTimeMillis();
     }
@@ -20,10 +21,23 @@ public class PolledConnection {
     }
 
     boolean clearing (long currentTime) throws SQLException {
-        if ((issued - currentTime) >= 20000000) {
+        if ((currentTime - issued) >= 10000 || conn.isClosed()) {
             conn.close();
             return true;
         }
         return false;
+    }
+
+    public void commit () throws SQLException {
+        conn.commit();
+    }
+
+    public void rollback () throws SQLException {
+        conn.rollback();
+    }
+
+    @Override
+    public int hashCode () {
+        return conn.hashCode( );
     }
 }

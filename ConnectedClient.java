@@ -1,10 +1,13 @@
 import DataThreads.Channel;
+import dbexecutors.sql.PolledConnection;
+import dbexecutors.sql.PoolController;
 import org.java_websocket.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.HashSet;
 
+import static dbexecutors.sql.PoolController.returnConnection;
 import static dbexecutors.sql.SystemExecutor.logAuthentication;
 import static dbexecutors.sql.SystemExecutor.logExit;
 
@@ -17,7 +20,17 @@ public class ConnectedClient {
     public boolean status = false;
 
     public ConnectedClient (@NotNull WebSocket webSocket, @NotNull ExpectedClient expectedClient) throws SQLException {
-        logAuthentication(expectedClient.id, expectedClient.key, expectedClient.agent);
+        PolledConnection connection = PoolController.getConnection( );
+
+        try {
+            logAuthentication(
+                    connection.conn,
+                    expectedClient.id,
+                    expectedClient.key,
+                    expectedClient.agent);
+        } finally {
+            returnConnection(connection);
+        }
 
         this.socket = webSocket;
         this.id = expectedClient.id;
@@ -50,7 +63,19 @@ public class ConnectedClient {
     }
 
     protected void close (int code, String reason) throws SQLException {
+        PolledConnection dbConnection = PoolController.getConnection();
+
         socket.close(code, reason);
-        logExit(id, key);
+        try {
+            logExit(dbConnection.conn, id, key);
+        } finally {
+            returnConnection(dbConnection);
+        }
+    }
+
+    protected void close (@NotNull PolledConnection dbConnection, int code, String reason) throws SQLException {
+        socket.close(code, reason);
+
+        logExit(dbConnection.conn, id, key);
     }
 }

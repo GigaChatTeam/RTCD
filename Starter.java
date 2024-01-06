@@ -1,3 +1,4 @@
+import dbexecutors.sql.PoolController;
 import exceptions.HandlerNodeTryRegisterSubNodeException;
 import exceptions.NodePathAlreadyRegisteredException;
 import org.ini4j.Ini;
@@ -28,6 +29,7 @@ public class Starter {
     static {
         try {
             Console.registerHandler(new String[]{ "stop" }, (String[] _) -> running = false);
+            Console.registerHandler(new String[]{ "config", "reload" }, (String[] _) -> PoolController.Configurator.reloadConfiguration());
         } catch (NodePathAlreadyRegisteredException | HandlerNodeTryRegisterSubNodeException e) {
             System.out.println("Initial server error");
             e.printStackTrace( );
@@ -68,6 +70,7 @@ public class Starter {
 
         authorizer.start( );
         wsCore.start( );
+        PoolController.start(Thread.currentThread( ));
         Console.start( );
 
         while (running) onSpinWait( );
@@ -108,6 +111,11 @@ public class Starter {
                 host = localhost
                 port = 5432
                 application = RTCD | %s
+                pool-name = pool connection
+                                
+                [elastic]
+                secure = true
+                url = http://localhost:9200
                 """);
         writer.flush( );
         writer.close( );

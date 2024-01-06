@@ -3,11 +3,12 @@ package dbexecutors.sql;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class SystemExecutor extends SQLAdapter {
-    public static void logAuthentication (long client, @NotNull String key, @Nullable String agent, boolean status) throws SQLException {
+public class SystemExecutor {
+    public static void logAuthentication (@NotNull Connection conn, long client, @NotNull String key, @Nullable String agent, boolean status) throws SQLException {
         String sql = """
                     INSERT INTO users.logins (client, key, login, agent, successfully)
                     VALUES
@@ -23,11 +24,11 @@ public class SystemExecutor extends SQLAdapter {
         stmt.execute( );
     }
 
-    public static void logAuthentication (long client, @NotNull String key, @Nullable String agent) throws SQLException {
-        logAuthentication(client, key, agent, true);
+    public static void logAuthentication (@NotNull Connection conn, long client, @NotNull String key, @Nullable String agent) throws SQLException {
+        logAuthentication(conn, client, key, agent, true);
     }
 
-    public static void logExit (long client, @NotNull String key) throws SQLException {
+    public static void logExit (@NotNull Connection conn, long client, @NotNull String key) throws SQLException {
         String sql = """
                     UPDATE users.logins
                     SET
@@ -45,7 +46,7 @@ public class SystemExecutor extends SQLAdapter {
         stmt.execute( );
     }
 
-    public static void logInterruptedLogin (long client, @NotNull String key, @NotNull String agent) throws SQLException {
+    public static void logInterruptedLogin (@NotNull Connection conn, long client, @NotNull String key, @NotNull String agent) throws SQLException {
         String sql = """
                     INSERT INTO users.logins (client, key, login, agent, successfully)
                     VALUES

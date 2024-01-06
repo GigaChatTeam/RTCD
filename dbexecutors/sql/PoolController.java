@@ -2,6 +2,7 @@ package dbexecutors.sql;
 
 import org.ini4j.Ini;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -14,7 +15,7 @@ import java.util.ArrayDeque;
 import static java.net.URLEncoder.encode;
 
 public class PoolController {
-    private static class Configurator {
+    public static class Configurator {
         protected static String url;
 
         private static Ini config;
@@ -29,13 +30,22 @@ public class PoolController {
             firstLoad = false;
         }
 
-        private static void loadConfigurationFile () {
+        public static void reloadConfiguration () {
+            if (loadConfigurationFile( )) {
+                loadConfiguration( );
+                System.out.println("Configuration successfully reloaded");
+            }
+        }
+
+        private static boolean loadConfigurationFile () {
             try {
                 config = new Ini(new File("./settings.ini"));
+                return true;
             } catch (IOException e) {
                 System.out.println("Invalid settings file");
                 e.printStackTrace( );
                 if (firstLoad) System.exit(1);
+                return false;
             }
         }
 
@@ -115,19 +125,18 @@ public class PoolController {
         }
     });
 
-    public PolledConnection getConnection () {
+    public static @NotNull PolledConnection getConnection () {
         PolledConnection connection;
 
         do {
-            connection = connections.pollLast( );
+            connection = connections.pollFirst( );
         } while (connection == null);
-
-        connection.issue( );
 
         return connection;
     }
 
-    public void returnConnection (PolledConnection connection) {
+    public static void returnConnection (@NotNull PolledConnection connection) {
+        connection.issue( );
         connections.addFirst(connection);
     }
 }
