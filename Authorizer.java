@@ -5,7 +5,9 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import dbexecutors.PermissionOperator;
+import dbexecutors.sql.PermissionOperator;
+import dbexecutors.sql.PolledConnection;
+import dbexecutors.sql.PoolController;
 import exceptions.InvalidAuthorizationDataException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,13 +16,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static dbexecutors.SystemExecutor.logInterruptedLogin;
+import static dbexecutors.sql.SystemExecutor.logInterruptedLogin;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;
@@ -71,8 +74,15 @@ public class Authorizer {
         }
     }
 
-    private String addClient (Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException {
-        if (!PermissionOperator.validateToken(id, secret, key)) throw new InvalidAuthorizationDataException( );
+    private String addClient (@NotNull Connection connection, Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException, SQLException {
+
+        try {
+            if (!PermissionOperator.validateToken(connection, id, secret, key))
+                throw new InvalidAuthorizationDataException( );
+        } finally {
+            connection.commit();
+        }
+
         String token = generateRandomAccessToken(id);
 
         synchronized (expectedClients) {
@@ -130,6 +140,8 @@ public class Authorizer {
             AuthorizeRequest request = null;
             Headers headers = null;
 
+            PolledConnection connection = PoolController.getConnection( );
+
             try {
                 if (!"POST".equals(exchange.getRequestMethod( ))) {
                     exchange.sendResponseHeaders(405, Responses.methodNotAllowed.length( ));
@@ -149,6 +161,7 @@ public class Authorizer {
 
                 String response = format(
                         Responses.success, addClient(
+                                connection.conn,
                                 request.client,
                                 request.secret,
                                 request.key,
@@ -172,6 +185,7 @@ public class Authorizer {
 
                 try {
                     logInterruptedLogin(
+                            connection.conn,
                             requireNonNull(request).client,
                             Helper.SHA512(request.key),
                             headers.get("User-Agent").getFirst( ));
@@ -179,12 +193,18 @@ public class Authorizer {
                     ex.printStackTrace( );
                 }
             } catch (IOException _) {
-            } catch (Exception e) {
-                e.printStackTrace( );
+            } catch (SQLException e) {
+                try {
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace( );
+                }
                 exchange.sendResponseHeaders(500, Responses.internalServerError.length( ));
                 OutputStream os = exchange.getResponseBody( );
                 os.write(Responses.internalServerError.getBytes( ));
                 os.close( );
+            } finally {
+                PoolController.returnConnection(connection);
             }
 
             exchange.close( );

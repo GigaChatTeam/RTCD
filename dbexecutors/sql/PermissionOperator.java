@@ -1,15 +1,16 @@
-package dbexecutors;
+package dbexecutors.sql;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static dbexecutors.Helper.verifierBCrypt;
 
-public class PermissionOperator extends DBOperator {
-    public static boolean validateToken (long id, @NotNull String secret, @NotNull String key) {
+public class PermissionOperator {
+    public static boolean validateToken (@NotNull Connection conn, long id, @NotNull String secret, @NotNull String key) {
         String sql = """
                     SELECT
                         secret,
