@@ -36,8 +36,8 @@ public abstract class ESAdapter {
     static {
         Boolean secure = config.get("elastic", "secure", Boolean.class);
 
-        basicURL = config.get("elastic", "url", String.class);
-        basicURL = secure ? basicURL.replace("http://", "https://") : basicURL;
+        basicURL = (secure ? "https://" : "http://") +
+                config.get("elastic", "url", String.class);
 
         apiKey = config.get("elastic", "key", String.class);
 
@@ -54,7 +54,7 @@ public abstract class ESAdapter {
 
             esClient = new ElasticsearchClient(transport);
         } catch (Exception e) {
-            System.out.println("ElasticSearch connection error");
+            System.out.println("ElasticSearch client initialize error");
             e.printStackTrace( );
             System.exit(1);
         }
