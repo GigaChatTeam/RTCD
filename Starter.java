@@ -119,6 +119,7 @@ public class Starter {
                 [elastic]
                 secure = true
                 url = localhost:9200
+                key = key
                 """);
         writer.flush( );
         writer.close( );
