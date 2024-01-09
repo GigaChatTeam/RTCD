@@ -86,7 +86,7 @@ public class ChannelsExecutor {
                 return channel;
             }
 
-            public static void leave (@NotNull Connection conn, long id, long channel) throws SQLException, NotFound {
+            public static @NotNull Timestamp leave (@NotNull Connection conn, long id, long channel) throws SQLException, NotFound {
                 String sql = """
                             SELECT channels.leave_user(?, ?)
                         """;
@@ -100,7 +100,13 @@ public class ChannelsExecutor {
 
                 rs.next();
 
-                if (!rs.getBoolean(1)) throw new NotFound();
+                Timestamp timestamp = rs.getTimestamp(1);
+
+                if (timestamp == null) {
+                    throw new NotFound();
+                } else {
+                    return timestamp;
+                }
             }
         }
     }

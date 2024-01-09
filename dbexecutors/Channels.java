@@ -9,6 +9,7 @@ import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -61,12 +62,14 @@ public class Channels {
                 }
             }
 
-            public static void leave (long id, long channel) throws SQLException, NotFound {
+            public static void leave (long id, long channel, @Nullable String reason) throws SQLException, IOException, NotFound {
                 PolledConnection connection = getConnection( );
 
                 try {
-                    ChannelsExecutor.Users.Presence.leave(connection.conn, id, channel);
-                } catch (SQLException e) {
+                    dbexecutors.es.ChannelsExecutor.Users.Presence.leave(
+                            id, channel, reason,
+                            dbexecutors.sql.ChannelsExecutor.Users.Presence.leave(connection.conn, id, channel));
+                } catch (SQLException | IOException e) {
                     connection.rollback( );
                     throw e;
                 } finally {
