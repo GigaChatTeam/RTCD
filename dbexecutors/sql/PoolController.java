@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
+import java.util.function.Consumer;
 
 import static java.net.URLEncoder.encode;
 
@@ -67,23 +68,31 @@ public class PoolController {
 
     private static final ArrayDeque<PolledConnection> connections = new ArrayDeque<>( );
     private static Thread mainThread;
+    private static boolean startup = true;
 
-    public static void start (Thread mainThread) {
+    public static void start (Thread mainThread, Consumer<Exception> criticalStop) {
         PoolController.mainThread = mainThread;
 
-        connections.addFirst(createConnection( ));
-        connections.addFirst(createConnection( ));
-        connections.addFirst(createConnection( ));
+        try {
+            connections.addFirst(createConnection());
+            connections.addFirst(createConnection());
+            connections.addFirst(createConnection());
+        } catch (SQLException e) {
+            criticalStop.accept(e);
+        }
 
         connectionCreator.start( );
         connectionCleaner.start( );
+
+        startup = false;
     }
 
     @Contract(" -> new")
-    private static @Nullable PolledConnection createConnection () {
+    private static @Nullable PolledConnection createConnection () throws SQLException {
         try {
             return new PolledConnection(DriverManager.getConnection(Configurator.url, Configurator.user, Configurator.password));
         } catch (SQLException e) {
+            if (startup) throw e;
             System.out.println("Critical error: it was not possible to create database connection");
             e.printStackTrace();
             return null;
@@ -93,7 +102,14 @@ public class PoolController {
     private static final Thread connectionCreator = new Thread(() -> {
         while (mainThread.isAlive( )) {
             if (connections.size( ) < 3) {
-                connections.addFirst(createConnection( ));
+                try {
+                    connections.addFirst(createConnection( ));
+                } catch (SQLException e) {
+                    System.out.println("Can't initialize DB connection");
+                    e.printStackTrace();
+                } catch (NullPointerException e) {
+                    while (!connections.isEmpty() || mainThread.isAlive( )) Thread.onSpinWait();
+                }
             }
         }
     });

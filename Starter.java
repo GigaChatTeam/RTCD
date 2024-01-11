@@ -2,6 +2,7 @@ import dbexecutors.sql.PoolController;
 import exceptions.HandlerNodeTryRegisterSubNodeException;
 import exceptions.NodePathAlreadyRegisteredException;
 import org.ini4j.Ini;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -28,8 +29,8 @@ public class Starter {
 
     static {
         try {
-            Console.registerHandler(new String[]{ "stop" }, (String[] _) -> running = false);
-            Console.registerHandler(new String[]{ "config", "reload" }, (String[] _) -> PoolController.Configurator.reloadConfiguration());
+            Console.registerHandler(new String[]{"stop"}, (String[] _) -> running = false);
+            Console.registerHandler(new String[]{"config", "reload"}, (String[] _) -> PoolController.Configurator.reloadConfiguration( ));
         } catch (NodePathAlreadyRegisteredException | HandlerNodeTryRegisterSubNodeException e) {
             System.out.println("Initial server error");
             e.printStackTrace( );
@@ -68,10 +69,12 @@ public class Starter {
             System.exit(1);
         }
 
+        PoolController.start(Thread.currentThread( ), Starter::stopRuntimeByCriticalError);
+        Console.start( );
+        if (!running) System.exit(1);
+
         authorizer.start( );
         wsCore.start( );
-        PoolController.start(Thread.currentThread( ));
-        Console.start( );
 
         while (running) onSpinWait( );
 
@@ -115,9 +118,16 @@ public class Starter {
                                 
                 [elastic]
                 secure = true
-                url = http://localhost:9200
+                url = localhost:9200
                 """);
         writer.flush( );
         writer.close( );
+    }
+
+    public static void stopRuntimeByCriticalError (@NotNull Exception error) {
+        System.out.println("Critical error");
+        error.printStackTrace( );
+
+        running = false;
     }
 }
