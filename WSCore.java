@@ -10,6 +10,7 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -196,13 +197,14 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_USERS_LEAVE -> {
                     Channels.Users.Presence.leave(
                             clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel);
+                            ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel,
+                            "self");
 
                     webSocket.send(new ResponsesPatterns.Channels.User.Presence.Leave().serialize(packet.hash));
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             if (Starter.DEBUG >= 1) e.printStackTrace( );
             webSocket.send(new ResponsesPatterns.System.ServerErrors.InternalError( ).serialize(packet.hash));
         } catch (ParseException e) {
