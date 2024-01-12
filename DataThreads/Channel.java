@@ -1,14 +1,27 @@
 package DataThreads;
 
+import exceptions.KeyNotInitialized;
+
+import java.util.HashMap;
 import java.util.Objects;
 
 public class Channel {
     public final long id;
-    public boolean canPost;
+    private final HashMap<Short, Boolean> rights;
 
-    public Channel (Long id, boolean canPost) {
+    public Channel (Long id, HashMap<Short, Boolean> rights) {
         this.id = id;
-        this.canPost = canPost;
+        this.rights = rights;
+    }
+
+    public boolean validateRule (Short ruleID) {
+        return rights.get(ruleID) != null && rights.get(ruleID);
+    }
+
+    public void updateRule (Short ruleID, Boolean newStatus) throws KeyNotInitialized {
+        if (rights.containsKey(ruleID)) {
+            rights.put(ruleID, newStatus);
+        } else throw new KeyNotInitialized( );
     }
 
     @Override

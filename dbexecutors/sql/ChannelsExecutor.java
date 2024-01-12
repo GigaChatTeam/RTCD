@@ -6,9 +6,11 @@ import exceptions.NotFound;
 import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.postgresql.util.PSQLException;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class ChannelsExecutor {
@@ -31,28 +33,48 @@ public class ChannelsExecutor {
 
     public static class Users {
         public static class Presence {
-            public static boolean isClientOnChannel (@NotNull Connection conn, long client, long channel) throws SQLException {
-                String sql = """
-                            SELECT EXISTS (
-                                SELECT *
-                                FROM channels.users
-                                WHERE
-                                    client = ? AND
-                                    channel = ?
-                            )
+            public static @NotNull @Unmodifiable HashMap<Short, Boolean> getUserFromChannel (@NotNull Connection conn, long user, long channel) throws SQLException, AccessDenied {
+                String sqlCheckThePresence = """
+                        SELECT EXISTS (
+                            SELECT *
+                            FROM channels.users
+                            WHERE
+                                client = ? AND
+                                channel = ?
+                        )
                         """;
+                String sqlGetRightsAndPermissions = """
+                        SELECT * FROM channels.select_permissions(?, ?) AS (
+                            "permission" SMALLINT,
+                            "value" BOOLEAN
+                        )
+                        """;
+
                 PreparedStatement stmt;
+                ResultSet rs;
 
-                stmt = conn.prepareStatement(sql);
-
-                stmt.setLong(1, client);
+                stmt = conn.prepareStatement(sqlCheckThePresence);
+                stmt.setLong(1, user);
                 stmt.setLong(2, channel);
 
-                ResultSet rs = stmt.executeQuery( );
-
+                rs = stmt.executeQuery( );
                 rs.next( );
 
-                return rs.getBoolean(1);
+                if (!rs.getBoolean(1)) throw new AccessDenied( );
+
+                stmt = conn.prepareStatement(sqlGetRightsAndPermissions);
+                stmt.setLong(1, channel);
+                stmt.setLong(2, user);
+
+                rs = stmt.executeQuery( );
+
+                HashMap<Short, Boolean> rights = new HashMap<>( );
+
+                while (rs.next( )) {
+                    rights.put(rs.getShort(1), rs.getBoolean(2));
+                }
+
+                return rights;
             }
 
             public static long join (@NotNull Connection conn, long user, @NotNull String channelInvitationURI) throws SQLException, AlreadyCompleted, NotFound {

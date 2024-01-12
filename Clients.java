@@ -1,3 +1,4 @@
+import DataThreads.Channel;
 import dbexecutors.sql.PolledConnection;
 import org.java_websocket.WebSocket;
 
@@ -40,7 +41,7 @@ class Clients {
         return clients.values( ).parallelStream( )
                 .filter(c -> c.socket == webSocket)
                 .anyMatch(c -> c.channels.parallelStream( )
-                        .anyMatch(v -> v.id == channel && v.canPost));
+                        .anyMatch(v -> v.id == channel && v.validateRule((short) 0)));
     }
 
     public boolean isUserConnected (WebSocket webSocket) {
@@ -64,28 +65,16 @@ class Clients {
         clients.remove(socket);
     }
 
-    public void addListeningClientToChannel (WebSocket socket, long channel, boolean canPost) {
+    public void addListeningClientToChannel (WebSocket socket, Channel channelObj) {
         clients.values( ).parallelStream( )
                 .filter(c -> c.socket == socket)
-                .forEach(c -> c.addListenChannel(channel, canPost));
+                .forEach(c -> c.addListenChannel(channelObj));
     }
 
-    public void addListeningClientToChannel (WebSocket socket, long channel) {
-        clients.values( ).parallelStream( )
-                .filter(c -> c.socket == socket)
-                .forEach(c -> c.addListenChannel(channel));
-    }
-
-    public void addListeningClientToChannel (long client, long channel, boolean canPost) {
+    public void addListeningClientToChannel (Long client, Channel channelObj) {
         clients.values( ).parallelStream( )
                 .filter(c -> c.id == client)
-                .forEach(c -> c.addListenChannel(channel, canPost));
-    }
-
-    public void addListeningClientToChannel (long client, long channel) {
-        clients.values( ).parallelStream( )
-                .filter(c -> c.id == client)
-                .forEach(c -> c.addListenChannel(channel));
+                .forEach(c -> c.addListenChannel(channelObj));
     }
 
     public void removeListeningClientFromChannel (WebSocket socket, long channel) {

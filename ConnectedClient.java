@@ -37,16 +37,8 @@ public class ConnectedClient {
         this.key = expectedClient.key;
     }
 
-    public void addListenChannel (long channel, boolean canPost) {
-        channels.add(new Channel(
-                channel, canPost
-        ));
-    }
-
-    public void addListenChannel (long channel) {
-        channels.add(new Channel(
-                channel, false
-        ));
+    public void addListenChannel (Channel channelObj) {
+        channels.add(channelObj);
     }
 
     public void removeListenChannel (long channel) {

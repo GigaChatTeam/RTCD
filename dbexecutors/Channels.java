@@ -8,10 +8,12 @@ import exceptions.NotFound;
 import exceptions.NotValid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static dbexecutors.sql.PoolController.getConnection;
@@ -34,11 +36,11 @@ public class Channels {
 
     public static class Users {
         public static class Presence {
-            public static boolean isClientOnChannel (long client, long channel) throws SQLException {
+            public static @NotNull @Unmodifiable HashMap<Short, Boolean> getUserFromChannel (long client, long channel) throws SQLException, AccessDenied {
                 PolledConnection connection = getConnection( );
 
                 try {
-                    return ChannelsExecutor.Users.Presence.isClientOnChannel(connection.conn, client, channel);
+                    return ChannelsExecutor.Users.Presence.getUserFromChannel(connection.conn, client, channel);
                 } catch (SQLException e) {
                     connection.rollback( );
                     throw e;

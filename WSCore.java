@@ -142,15 +142,14 @@ class WSCore extends WebSocketServer {
                     }
                 }
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
-                    if (!Channels.Users.Presence.isClientOnChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel))
-                        throw new AccessDenied( );
-
                     clients.addListeningClientToChannel(
-                            clients.getID(webSocket),
-                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel,
-                            true);
+                            webSocket,
+                            new DataThreads.Channel(
+                                    ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel,
+                                    Channels.Users.Presence.getUserFromChannel(
+                                            clients.getID(webSocket),
+                                            ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel)
+                            ));
 
                     webSocket.send(
                             new ResponsesPatterns.Channels.System.Notification.AddListening(
@@ -200,7 +199,7 @@ class WSCore extends WebSocketServer {
                             ((CommandsPatterns.Channels.User.Presence.Leave) packet.postData).channel,
                             "self");
 
-                    webSocket.send(new ResponsesPatterns.Channels.User.Presence.Leave().serialize(packet.hash));
+                    webSocket.send(new ResponsesPatterns.Channels.User.Presence.Leave( ).serialize(packet.hash));
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
