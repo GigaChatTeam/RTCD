@@ -226,7 +226,7 @@ public class ResponsesPatterns {
                     @JsonIgnore
                     String intention = "170";
 
-                    public Leave () {
+                    public Leave ( ) {
 
                     }
 

@@ -15,6 +15,12 @@ import static java.lang.Long.parseLong;
 
 public class JsonIteratorExtra {
     public static class UUIDSupport implements Encoder, Decoder {
+        public static void registerHandler ( ) {
+            UUIDSupport operator = new UUIDSupport( );
+            registerTypeDecoder(UUID.class, operator);
+            registerTypeEncoder(UUID.class, operator);
+        }
+
         @Override
         public UUID decode (@NotNull JsonIterator jsonIterator) throws IOException {
             String value = jsonIterator.readString( );
@@ -27,15 +33,15 @@ public class JsonIteratorExtra {
         public void encode (@NotNull Object obj, @NotNull JsonStream stream) throws IOException {
             stream.writeVal(STR."\"\{obj.toString( )}\"");
         }
-
-        public static void registerHandler () {
-            UUIDSupport operator = new UUIDSupport( );
-            registerTypeDecoder(UUID.class, operator);
-            registerTypeEncoder(UUID.class, operator);
-        }
     }
 
     public static class SQLTimestampSupport implements Encoder, Decoder {
+        public static void registerHandler ( ) {
+            SQLTimestampSupport operator = new SQLTimestampSupport( );
+            registerTypeDecoder(Timestamp.class, operator);
+            registerTypeEncoder(Timestamp.class, operator);
+        }
+
         @Override
         public Timestamp decode (@NotNull JsonIterator jsonIterator) throws IOException {
             try {
@@ -53,12 +59,6 @@ public class JsonIteratorExtra {
         @Override
         public void encode (Object obj, @NotNull JsonStream stream) throws IOException {
             stream.writeVal(STR."\{((Timestamp) obj).getTime( )}.\{((Timestamp) obj).getNanos( )}");
-        }
-
-        public static void registerHandler () {
-            SQLTimestampSupport operator = new SQLTimestampSupport( );
-            registerTypeDecoder(Timestamp.class, operator);
-            registerTypeEncoder(Timestamp.class, operator);
         }
     }
 }

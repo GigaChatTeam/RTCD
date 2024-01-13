@@ -31,7 +31,7 @@ public class Authorizer {
     private final InetSocketAddress address;
     private final HttpServer authorizeServer;
     private final HashSet<ExpectedClient> expectedClients = new HashSet<>( );
-    private final Thread tokensCleaningDaemon = new Thread(() -> {
+    private final Thread tokensCleaningDaemon = new Thread(( ) -> {
         List<ExpectedClient> toClear;
         while (Starter.running) {
             long current = Date.from(ofEpochSecond(currentTimeMillis( ))).getTime( );
@@ -105,13 +105,13 @@ public class Authorizer {
         }
     }
 
-    void start () {
+    void start ( ) {
         authorizeServer.start( );
         tokensCleaningDaemon.start( );
         System.out.println(STR."Authorizer server started on port \{address.getPort( )}");
     }
 
-    void stop () {
+    void stop ( ) {
         authorizeServer.stop(0);
     }
 

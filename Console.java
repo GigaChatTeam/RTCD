@@ -18,11 +18,9 @@ public class Console {
     public static final String ANSI_PURPLE = "\u001B[35m";
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
-
-    private static final ArrayDeque<String[]> queue = new ArrayDeque<>( );
     static final Node handlers = new Node( );
-
-    static Thread console = new Thread(() -> {
+    private static final ArrayDeque<String[]> queue = new ArrayDeque<>( );
+    static Thread console = new Thread(( ) -> {
         Scanner scanner = new Scanner(System.in);
 
         while (Starter.running) {
@@ -39,7 +37,7 @@ public class Console {
         }
     });
 
-    static Thread executor = new Thread(() -> {
+    static Thread executor = new Thread(( ) -> {
         while (Starter.running) {
             String[] command = null;
 
@@ -62,7 +60,7 @@ public class Console {
         handlers.addNode(path, handler);
     }
 
-    static void start () {
+    static void start ( ) {
         executor.start( );
         console.start( );
     }

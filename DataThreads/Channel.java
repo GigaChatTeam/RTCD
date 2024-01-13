@@ -20,7 +20,7 @@ public class Channel {
     }
 
     @Override
-    public int hashCode () {
+    public int hashCode ( ) {
         return Long.hashCode(id);
     }
 }

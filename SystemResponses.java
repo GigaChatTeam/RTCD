@@ -68,15 +68,15 @@ public class SystemResponses {
         }
 
         static class Systems {
-            static String NOT_AUTHORIZED () {
+            static String NOT_AUTHORIZED ( ) {
                 return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_AUTHORIZED}";
             }
 
-            static String NOT_VALID_INTENTIONS () {
+            static String NOT_VALID_INTENTIONS ( ) {
                 return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_INTENTIONS}";
             }
 
-            static String NOT_VALID_ID () {
+            static String NOT_VALID_ID ( ) {
                 return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_ID}";
             }
         }

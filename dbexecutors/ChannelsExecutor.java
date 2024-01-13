@@ -72,8 +72,8 @@ public class ChannelsExecutor extends DBOperator {
                     if (e.getServerErrorMessage( ) == null) throw e;
 
                     switch (e.getServerErrorMessage( ).getConstraint( )) {
-                        case "users_pkey" -> throw new AlreadyCompleted();
-                        case "invitations_check" -> throw new NotFound();
+                        case "users_pkey" -> throw new AlreadyCompleted( );
+                        case "invitations_check" -> throw new NotFound( );
                         case null, default -> throw e;
                     }
                 }
@@ -82,7 +82,7 @@ public class ChannelsExecutor extends DBOperator {
 
                 long channel = rs.getLong(1);
 
-                if (channel == 0) throw new NotFound();
+                if (channel == 0) throw new NotFound( );
                 return channel;
             }
 
@@ -98,9 +98,9 @@ public class ChannelsExecutor extends DBOperator {
 
                 ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
-                if (!rs.getBoolean(1)) throw new NotFound();
+                if (!rs.getBoolean(1)) throw new NotFound( );
             }
         }
     }
@@ -146,7 +146,7 @@ public class ChannelsExecutor extends DBOperator {
 
             rs.next( );
 
-            if (!rs.getBoolean(1)) throw new NotFound();
+            if (!rs.getBoolean(1)) throw new NotFound( );
         }
     }
 

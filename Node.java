@@ -24,7 +24,7 @@ public class Node {
         }
     }
 
-    public Node () {
+    public Node ( ) {
         this.container = new HashMap<>( );
         this.handler = null;
     }
