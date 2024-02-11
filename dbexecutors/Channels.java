@@ -34,6 +34,10 @@ public class Channels {
         }
     }
 
+    public static class Administration {
+
+    }
+
     public static class Users {
         public static class Presence {
             public static @NotNull @Unmodifiable HashMap<Short, Boolean> getUserFromChannel (long client, long channel) throws SQLException, AccessDenied {

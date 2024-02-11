@@ -159,7 +159,38 @@ public class CommandsPatterns {
             }
 
             public static class Users {
+                public static class Add {
+                    @JsonProperty(required = true)
+                    long channel;
+                    @JsonProperty(required = true)
+                    long user;
+                }
 
+                public static class Mute {
+                    @JsonProperty(required = true)
+                    long channel;
+                    @JsonProperty(required = true)
+                    long user;
+                    String reason;
+                    Timestamp ending;
+                }
+
+                public static class Ban {
+                    @JsonProperty(required = true)
+                    long channel;
+                    @JsonProperty(required = true)
+                    long user;
+                    @JsonProperty(required = true)
+                    String reason;
+                    Timestamp ending;
+                }
+
+                public static class Kick {
+                    @JsonProperty(required = true)
+                    long channel;
+                    @JsonProperty(required = true)
+                    long client;
+                }
             }
         }
 

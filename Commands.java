@@ -17,10 +17,10 @@ public enum Commands {
     CHANNELS_ADMINISTRATION_PERMISSIONS_USERS_EDIT("2D0", null),
     CHANNELS_ADMINISTRATION_PERMISSIONS_USERS_GROUPS("2D1", null),
     // Administration of users
-    CHANNELS_ADMINISTRATION_USERS_ADD("2DC", null),
-    CHANNELS_ADMINISTRATION_USERS_MUTE("2DD", null),
-    CHANNELS_ADMINISTRATION_USERS_BAN("2DE", null),
-    CHANNELS_ADMINISTRATION_USERS_KICK("2DF", null),
+    CHANNELS_ADMINISTRATION_USERS_ADD("2DC", CommandsPatterns.Channels.Administration.Users.Add.class),
+    CHANNELS_ADMINISTRATION_USERS_MUTE("2DD", CommandsPatterns.Channels.Administration.Users.Mute.class),
+    CHANNELS_ADMINISTRATION_USERS_BAN("2DE", CommandsPatterns.Channels.Administration.Users.Ban.class),
+    CHANNELS_ADMINISTRATION_USERS_KICK("2DF", CommandsPatterns.Channels.Administration.Users.Kick.class),
     // Changing external settings
     CHANNELS_ADMINISTRATION_SETTINGS("B5", null),
     // Channel listening control
