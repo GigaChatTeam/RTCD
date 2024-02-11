@@ -94,8 +94,8 @@ public class ChannelsExecutor {
                     if (e.getServerErrorMessage( ) == null) throw e;
 
                     switch (e.getServerErrorMessage( ).getConstraint( )) {
-                        case "users_pkey" -> throw new AlreadyCompleted();
-                        case "invitations_check" -> throw new NotFound();
+                        case "users_pkey" -> throw new AlreadyCompleted( );
+                        case "invitations_check" -> throw new NotFound( );
                         case null, default -> throw e;
                     }
                 }
@@ -104,7 +104,7 @@ public class ChannelsExecutor {
 
                 long channel = rs.getLong(1);
 
-                if (channel == 0) throw new NotFound();
+                if (channel == 0) throw new NotFound( );
                 return channel;
             }
 
@@ -120,12 +120,12 @@ public class ChannelsExecutor {
 
                 ResultSet rs = stmt.executeQuery( );
 
-                rs.next();
+                rs.next( );
 
                 Timestamp timestamp = rs.getTimestamp(1);
 
                 if (timestamp == null) {
-                    throw new NotFound();
+                    throw new NotFound( );
                 } else {
                     return timestamp;
                 }
@@ -174,7 +174,7 @@ public class ChannelsExecutor {
 
             rs.next( );
 
-            if (!rs.getBoolean(1)) throw new NotFound();
+            if (!rs.getBoolean(1)) throw new NotFound( );
         }
     }
 

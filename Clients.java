@@ -118,7 +118,7 @@ class Clients {
         returnConnection(dbConnection);
     }
 
-    public HashMap<WebSocket, ConnectedClient> getClients () {
+    public HashMap<WebSocket, ConnectedClient> getClients ( ) {
         return clients;
     }
 }

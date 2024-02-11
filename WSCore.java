@@ -104,20 +104,6 @@ class WSCore extends WebSocketServer {
         try {
             switch (cmd) {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
-                    if (!clients.isUserInChannel(
-                            webSocket,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel)
-                        ||
-                        !clients.isUserCanPostToChannel(
-                                webSocket,
-                                ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
-                        throw new AccessDenied( );
-
-
-                    clients.sendCommandToChannel(
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                            ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text);
-
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
                         case "TEXT" -> {
                             if (!clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
@@ -164,13 +150,12 @@ class WSCore extends WebSocketServer {
                             new ResponsesPatterns.Channels.System.Notification.RemoveListening(
                                     ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel).serialize(packet.hash));
                 }
-                case CHANNELS_SYSTEM_CREATE ->
-                        webSocket.send(
-                                new ResponsesPatterns.Channels.System.Control.Create(
-                                        Channels.create(
-                                                clients.getID(webSocket),
-                                                ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
-                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
+                case CHANNELS_SYSTEM_CREATE -> webSocket.send(
+                        new ResponsesPatterns.Channels.System.Control.Create(
+                                Channels.create(
+                                        clients.getID(webSocket),
+                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
+                                ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case CHANNELS_USERS_INVITATIONS_CREATE -> webSocket.send(
                         new ResponsesPatterns.Channels.Invitations.Create(
                                 clients.getID(webSocket),
@@ -255,12 +240,12 @@ class WSCore extends WebSocketServer {
     }
 
     @Override
-    public void onStart () {
+    public void onStart ( ) {
         System.out.println(STR."WS server started on port \{port}");
     }
 
     @Override
-    public void stop () throws InterruptedException {
+    public void stop ( ) throws InterruptedException {
         clients.closeAllClients(1001, "ServerShutdown");
         super.stop( );
     }
