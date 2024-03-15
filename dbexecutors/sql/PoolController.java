@@ -1,158 +1,75 @@
 package dbexecutors.sql;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.ini4j.Ini;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.DriverManager;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayDeque;
-import java.util.function.Consumer;
 
-import static java.net.URLEncoder.encode;
+import static org.postgresql.util.URLCoder.encode;
 
 public class PoolController {
-    public static class Configurator {
-        protected static String url;
+    private static final HikariConfig connectionConfig = new HikariConfig( );
+    private static HikariDataSource connectionDataSource = null;
 
-        private static Ini config;
-        protected static String user;
-        protected static String password;
+    public static class Configuration {
+        protected String url;
 
-        private static boolean firstLoad = true;
+        protected String database;
+        protected Integer port;
+        protected String host;
+        protected String applicationName;
+        protected String user;
+        protected String password;
 
-        static {
-            loadConfigurationFile( );
-            loadConfiguration( );
-            firstLoad = false;
-        }
+        protected Integer minConnections;
+        protected Integer maxConnections;
+        protected Long connectionTimeout;
 
-        public static void reloadConfiguration () {
-            if (loadConfigurationFile( )) {
-                loadConfiguration( );
-                System.out.println("Configuration successfully reloaded");
-            }
-        }
+        public Configuration (@NotNull Ini configFile) {
+            database = configFile.get("database", "base", String.class);
+            host = configFile.get("database", "host", String.class);
+            port = configFile.get("database", "port", Integer.class);
+            String applicationTitle = String.format(
+                    configFile.get("database", "application", String.class),
+                    configFile.get("server", "id", String.class));
+            String poolName = configFile.get("database", "pool-name", String.class);
 
-        private static boolean loadConfigurationFile () {
-            try {
-                config = new Ini(new File("./settings.ini"));
-                return true;
-            } catch (IOException e) {
-                System.out.println("Invalid settings file");
-                e.printStackTrace( );
-                if (firstLoad) System.exit(1);
-                return false;
-            }
-        }
+            user = configFile.get("database", "user", String.class);
+            password = configFile.get("database", "password", String.class);
+            applicationName = STR."\{applicationTitle} - \{poolName}";
+            url = STR."jdbc:postgresql://\{host}:\{port}/\{database}?ApplicationName=\{encode(STR."\{applicationTitle} - \{poolName}")}";
 
-        private static void loadConfiguration () {
-            String database = config.get("database", "base", String.class);
-            String host = config.get("database", "host", String.class);
-            Integer port = config.get("database", "port", Integer.class);
-            String applicationName = String.format(
-                    config.get("database", "application", String.class),
-                    config.get("server", "id", String.class));
-            String poolName = config.get("database", "pool-name", String.class);
-
-            user = config.get("database", "user", String.class);
-            password = config.get("database", "password", String.class);
-
-            url = STR."jdbc:postgresql://\{host}:\{port}/\{database}?ApplicationName=\{encode(STR."\{applicationName} - \{poolName}", StandardCharsets.UTF_8)}";
+            minConnections = configFile.get("database-pool", "min-connections", Integer.class);
+            maxConnections = configFile.get("database-pool", "max-connections", Integer.class);
+            connectionTimeout = configFile.get("database-pool", "timeout", Long.class);
         }
     }
 
-    private static final ArrayDeque<PolledConnection> connections = new ArrayDeque<>( );
-    private static Thread mainThread;
-    private static boolean startup = true;
+    public synchronized static void initializePool (@NotNull Configuration configuration) {
+        connectionConfig.setJdbcUrl(configuration.url);
+        connectionConfig.setUsername(configuration.user);
+        connectionConfig.setPassword(configuration.password);
 
-    public static void start (Thread mainThread, Consumer<Exception> criticalStop) {
-        PoolController.mainThread = mainThread;
+        connectionConfig.setMaximumPoolSize(configuration.maxConnections);
+        connectionConfig.setConnectionTimeout(configuration.connectionTimeout);
 
-        try {
-            connections.addFirst(createConnection());
-            connections.addFirst(createConnection());
-            connections.addFirst(createConnection());
-        } catch (SQLException e) {
-            criticalStop.accept(e);
-        }
+        connectionConfig.setAutoCommit(false);
 
-        connectionCreator.start( );
-        connectionCleaner.start( );
-
-        startup = false;
+        connectionDataSource = new HikariDataSource(connectionConfig);
     }
 
-    @Contract(" -> new")
-    private static @Nullable PolledConnection createConnection () throws SQLException {
-        try {
-            return new PolledConnection(DriverManager.getConnection(Configurator.url, Configurator.user, Configurator.password));
-        } catch (SQLException e) {
-            if (startup) throw e;
-            System.out.println("Critical error: it was not possible to create database connection");
-            e.printStackTrace();
-            return null;
-        }
+    public static @NotNull Connection getConnection ( ) throws SQLException {
+        return getConnection(Connection.TRANSACTION_SERIALIZABLE);
     }
 
-    private static final Thread connectionCreator = new Thread(() -> {
-        while (mainThread.isAlive( )) {
-            if (connections.size( ) < 3) {
-                try {
-                    connections.addFirst(createConnection( ));
-                } catch (SQLException e) {
-                    System.out.println("Can't initialize DB connection");
-                    e.printStackTrace();
-                } catch (NullPointerException e) {
-                    while (!connections.isEmpty() || mainThread.isAlive( )) Thread.onSpinWait();
-                }
-            }
-        }
-    });
+    public static @NotNull Connection getConnection (int isolation) throws SQLException {
+        Connection connection = connectionDataSource.getConnection( );
 
-    private static final Thread connectionCleaner = new Thread(() -> {
-        PolledConnection connection;
-
-        while (mainThread.isAlive( )) {
-            Long currentTime = System.currentTimeMillis( );
-
-            if (connections.size( ) > 3) {
-                connection = connections.getLast( );
-                try {
-                    if (connection.clearing(currentTime)) {
-                        if (connections.removeLastOccurrence(connection)) {
-                            System.out.println(STR."The database connection has been released. Currently, \{connections.size( )} connections are reserved.");
-                        } else {
-                            System.out.println(STR."An outdated database connection could not be cleared. Currently, \{connections.size( )} connections are reserved.");
-                        }
-                    }
-                } catch (SQLException e) {
-                    if (connections.removeLastOccurrence(connection)) {
-                        System.out.println(STR."The closed database connection has been successfully cleared. Currently, \{connections.size( )} connections are reserved.");
-                    } else {
-                        System.out.println(STR."The closed database connection could not be cleared. Currently, \{connections.size( )} connections are reserved.");
-                    }
-                }
-            }
-        }
-    });
-
-    public static @NotNull PolledConnection getConnection () {
-        PolledConnection connection;
-
-        do {
-            connection = connections.pollFirst( );
-        } while (connection == null);
+        connection.setTransactionIsolation(isolation);
 
         return connection;
-    }
-
-    public static void returnConnection (@NotNull PolledConnection connection) {
-        connection.issue( );
-        connections.addFirst(connection);
     }
 }

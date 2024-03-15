@@ -1,19 +1,29 @@
 package dbexecutors;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.TimeZone;
 
 public class Helper {
+    static long timeZoneOffset = TimeZone.getTimeZone("GMT+0").getRawOffset() - TimeZone.getDefault( ).getRawOffset();
+
+    @Contract(" -> new")
+    static @NotNull Timestamp nowUTC ( ) {
+        return new Timestamp(System.currentTimeMillis() + timeZoneOffset);
+    }
+
     public static boolean verifierBCrypt (@NotNull String data, byte[] hashData) {
         return BCrypt.verifyer( ).verify(Arrays.copyOfRange(data.toCharArray( ), 0, Math.min(data.toCharArray( ).length, 72)), hashData).verified;
     }
 
-    static @NotNull String SHA512 (@NotNull String string) {
+    public static @NotNull String SHA512 (@NotNull String string) {
         MessageDigest md;
 
         try {

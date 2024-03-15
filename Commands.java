@@ -1,3 +1,5 @@
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -40,9 +42,9 @@ public enum Commands {
     CHANNELS_USERS_MESSAGES_POST_FORWARD_MEDIA("2E73", null),
     CHANNELS_USERS_MESSAGES_POST_FORWARD_SMESSAGE("2E74", null),
     CHANNELS_USERS_MESSAGES_EDIT("2E6", null),
-    CHANNELS_USERS_MESSAGES_DELETE("2E4", null),
+    CHANNELS_USERS_MESSAGES_DELETE("2E4", null);
 
-    SYSTEM_TTOKENS_GENERATE("", null);
+    static final Commands[] values = Commands.values( );
 
     final String intents;
     final Class<?> pattern;
@@ -52,10 +54,10 @@ public enum Commands {
         this.pattern = pattern;
     }
 
-    public static Commands byIntents (String intents) {
-        return Arrays.stream(Commands.values( ))
+    public static @Nullable Commands byIntents (String intents) {
+        return Arrays.stream(values)
                 .filter(v -> Objects.equals(v.intents, intents))
                 .findFirst( )
-                .orElseThrow( );
+                .orElse(null);
     }
 }

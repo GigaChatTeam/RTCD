@@ -1,5 +1,6 @@
-import com.jsoniter.JsonIterator;
-import com.jsoniter.any.Any;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,12 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class Helper {
+    public static ObjectMapper objectMapper = new ObjectMapper();
+
+    static {
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
     static String SHA512 (String string) {
         MessageDigest md;
 
@@ -58,13 +65,8 @@ public class Helper {
             this.preData = splitPacket[2];
         }
 
-        public void parseData (Class<?> pattern) {
-            postData = JsonIterator.deserialize(preData, pattern);
+        public void parseData (Class<?> pattern) throws JsonProcessingException {
+            postData = objectMapper.readValue(preData, pattern);
         }
-    }
-
-    public static class TTokenQueryWrapper {
-        String intention;
-        Any data;
     }
 }

@@ -1,73 +1,52 @@
-import DataThreads.Channel;
-import dbexecutors.sql.PolledConnection;
-import dbexecutors.sql.PoolController;
+import datathreads.Channel;
+import exceptions.ExpectedAddressNotEqualsRemotedException;
 import org.java_websocket.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.SQLException;
 import java.util.HashSet;
-
-import static dbexecutors.sql.PoolController.returnConnection;
-import static dbexecutors.sql.SystemExecutor.logAuthentication;
-import static dbexecutors.sql.SystemExecutor.logExit;
 
 public class ConnectedClient {
     public final long id;
     protected final WebSocket socket;
-    protected final HashSet<Channel> channels = new HashSet<>( );
-    protected final String key;
+    protected final Channels channels = new Channels( );
+    protected final String hashKey;
 
     public boolean status = false;
 
-    public ConnectedClient (@NotNull WebSocket webSocket, @NotNull ExpectedClient expectedClient) throws SQLException {
-        PolledConnection connection = PoolController.getConnection( );
+    public final String agent;
 
-        try {
-            logAuthentication(
-                    connection.conn,
-                    expectedClient.id,
-                    expectedClient.key,
-                    expectedClient.agent);
-        } finally {
-            returnConnection(connection);
-        }
-
+    public ConnectedClient (@NotNull WebSocket webSocket, @NotNull ExpectedClient expectedClient) {
         this.socket = webSocket;
         this.id = expectedClient.id;
-        this.key = expectedClient.key;
+        this.hashKey = expectedClient.hashKey;
+
+        this.agent = expectedClient.agent;
     }
 
-    public void addListenChannel (Channel channelObj) {
-        channels.add(channelObj);
-    }
+    public static class Channels {
+        private final HashSet<Channel> list = new HashSet<>( );
 
-    public void removeListenChannel (long channel) {
-        channels.remove(
-                channels.stream( )
-                        .filter(c -> c.id == channel)
-                        .findFirst( )
-                        .orElse(null)
-        );
+        public void addListenChannel (Channel channel) {
+            list.add(channel);
+        }
+
+        public void removeListenChannel (Long channelID) {
+            list.stream( )
+                    .filter(c -> c.id() == channelID)
+                    .toList( )
+                    .forEach(list::remove);
+        }
+
+        public HashSet<Channel> getListenChannels ( ) {
+            return list;
+        }
     }
 
     protected void send (String data) {
         socket.send(data);
     }
 
-    protected void close (int code, String reason) throws SQLException {
-        PolledConnection dbConnection = PoolController.getConnection();
-
+    protected void close (Integer code, String reason) {
         socket.close(code, reason);
-        try {
-            logExit(dbConnection.conn, id, key);
-        } finally {
-            returnConnection(dbConnection);
-        }
-    }
-
-    protected void close (@NotNull PolledConnection dbConnection, int code, String reason) throws SQLException {
-        socket.close(code, reason);
-
-        logExit(dbConnection.conn, id, key);
     }
 }

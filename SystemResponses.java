@@ -1,73 +1,94 @@
-import com.jsoniter.output.JsonStream;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
 import static java.util.Map.entry;
 
 public class SystemResponses {
-    static class Errors {
-        private static class Bodies {
-            public static String MESSAGE_DAMAGED = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "damaged")
-            ));
-            public static String PERMISSION_DENIED = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "command"),
-                    entry("status", "permission denied")
-            ));
-            public static String NOT_VALID_INTENTIONS = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "command"),
-                    entry("status", "not valid intentions")
-            ));
-            public static String SERVER_ERROR = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "server error")
-            ));
-            public static String NOT_AUTHORIZED = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "not authorized")
-            ));
-            public static String NOT_VALID_ID = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "not valid id")
-            ));
-            public static String NOT_FOUND = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "not found")
-            ));
-            public static String NOT_VALID_DATA = JsonStream.serialize(Map.ofEntries(
-                    entry("target", "system"),
-                    entry("status", "not valid data")
-            ));
+    private static final ObjectMapper objectMapper = new ObjectMapper( );
+
+    private enum Bodies {
+        CONNECTION_READY(Map.ofEntries(
+                entry("target", "connection"),
+                entry("status", "ConnectionEstablished")
+        )),
+        MESSAGE_DAMAGED(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "MessageDamaged")
+        )),
+        PERMISSION_DENIED(Map.ofEntries(
+                entry("target", "command"),
+                entry("status", "PermissionDenied")
+        )),
+        NOT_VALID_INTENTIONS(Map.ofEntries(
+                entry("target", "command"),
+                entry("status", "NotValidIntentions")
+        )),
+        SERVER_ERROR(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "InternalServerError")
+        )),
+        NOT_AUTHORIZED(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "NotAuthorized")
+        )),
+        ALREADY_COMPLETED(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "AlreadyCompleted")
+        )),
+        NOT_VALID_ID(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "NotValidID")
+        )),
+        NOT_FOUND(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "NotFound")
+        )),
+        NOT_VALID_DATA(Map.ofEntries(
+                entry("target", "system"),
+                entry("status", "NotValidData")
+        ));
+
+        private final String data;
+
+        Bodies (Map<String, String> data) {
+            try {
+                this.data = objectMapper.writeValueAsString(data);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
+    }
 
+    static class Errors {
         static class Users {
-            static String MESSAGE_DAMAGED (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.MESSAGE_DAMAGED}";
-            }
-
-            static String PERMISSION_DENIED (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.PERMISSION_DENIED}";
-            }
-
-            static String SERVER_ERROR (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.SERVER_ERROR}";
-            }
-
-            static String NOT_AUTHORIZED (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_AUTHORIZED}";
-            }
-
-            public static String NOT_FOUND (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_FOUND}";
+            static String ACCESS_DENIED (String hash) {
+                return STR."89%\{hash}%\{Bodies.PERMISSION_DENIED.data}";
             }
 
             static String NOT_VALID_DATA (String hash) {
-                return STR."SYSTEM-ERROR%\{hash}%\{Bodies.NOT_VALID_DATA}";
+                return STR."210%\{hash}%\{Bodies.NOT_VALID_DATA}";
+            }
+
+            static String ALREADY_COMPLETED (String hash) {
+                return STR."212%\{hash}\{hash}%\{Bodies.ALREADY_COMPLETED}";
+            }
+
+            public static String NOT_FOUND (String hash) {
+                return STR."213%\{hash}%\{Bodies.NOT_FOUND}";
             }
         }
 
         static class Systems {
+            static String SERVER_ERROR (String hash) {
+                return STR."88%\{hash}%\{Bodies.SERVER_ERROR.data}";
+            }
+
+            static String MESSAGE_DAMAGED ( ) {
+                return STR."SYSTEM-ERROR%MISS%\{Bodies.MESSAGE_DAMAGED.data}";
+            }
+
             static String NOT_AUTHORIZED ( ) {
                 return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_AUTHORIZED}";
             }
@@ -75,17 +96,12 @@ public class SystemResponses {
             static String NOT_VALID_INTENTIONS ( ) {
                 return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_INTENTIONS}";
             }
-
-            static String NOT_VALID_ID ( ) {
-                return STR."SYSTEM-ERROR%MISS%\{Bodies.NOT_VALID_ID}";
-            }
         }
     }
 
     public static class Confirmations {
-        public static String CONNECTION_READY = JsonStream.serialize(Map.ofEntries(
-                entry("target", "connection"),
-                entry("status", "connected")
-        ));
+        public static String CONNECTION_READY (String hash) {
+            return STR."SYSTEM-NOTIFICATION%\{hash}%\{Bodies.MESSAGE_DAMAGED.data}";
+        }
     }
 }

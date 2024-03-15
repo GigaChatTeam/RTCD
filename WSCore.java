@@ -1,9 +1,10 @@
-import com.jsoniter.spi.JsonException;
+import co.elastic.clients.util.Pair;
+import com.clickhouse.client.ClickHouseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import dbexecutors.Channels;
-import dbexecutors.sql.PolledConnection;
-import dbexecutors.sql.PoolController;
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
+import exceptions.ExpectedAddressNotEqualsRemotedException;
 import exceptions.NotFound;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -13,10 +14,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
-import java.util.NoSuchElementException;
-
-import static dbexecutors.sql.SystemExecutor.logAuthentication;
+import java.util.Arrays;
+import java.util.Objects;
 
 
 class WSCore extends WebSocketServer {
@@ -28,43 +29,35 @@ class WSCore extends WebSocketServer {
         this.port = port;
     }
 
-    private boolean clientIDVerifier (@NotNull WebSocket webSocket, long id) {
-        return id == clients.getID(webSocket) && id != -1;
-    }
-
     @Override
     public void onOpen (@NotNull WebSocket webSocket, @NotNull ClientHandshake clientHandshake) {
-        if (Starter.DEBUG >= 3) System.out.println(clientHandshake.getResourceDescriptor( ));
+        if (Starter.DEBUG >= 3)
+            System.out.println(clientHandshake.getResourceDescriptor( ));
 
         String[] connectionParams = clientHandshake.getResourceDescriptor( ).split("/");
 
-        PolledConnection connection = PoolController.getConnection( );
-
         try {
             ExpectedClient validateClient = Starter.authorizer.validateClient(Long.valueOf(connectionParams[1]), connectionParams[2]);
+
             if (validateClient != null) {
                 if (Starter.DEBUG > 2)
                     System.out.println(STR."Client \{validateClient.id} try to connected");
 
+                if (!Objects.equals(validateClient.ipAddress.getHostAddress( ), webSocket.getRemoteSocketAddress( ).getAddress( ).getHostAddress( )))
+                    throw new ExpectedAddressNotEqualsRemotedException( );
+
                 clients.addClient(new ConnectedClient(webSocket, validateClient));
-                webSocket.send(new ResponsesPatterns.System.ConnectionParameters.ConnectionControl(true).serialize(connectionParams[2]));
+                webSocket.send(SystemResponses.Confirmations.CONNECTION_READY(Helper.SHA512(connectionParams[2])));
                 clients.changeClientConnectionStatus(webSocket, true);
-                logAuthentication(
-                        connection.conn,
-                        Long.parseLong(connectionParams[1]),
-                        Helper.SHA512(validateClient.key),
-                        validateClient.agent);
 
                 if (Starter.DEBUG > 2)
                     System.out.println(STR."Client \{validateClient.id} connected");
             } else webSocket.close(4002, "InvalidAuthorizationData");
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+        } catch (ArrayIndexOutOfBoundsException | NumberFormatException | ExpectedAddressNotEqualsRemotedException e) {
             webSocket.close(1007, "InsufficientData");
         } catch (Exception e) {
             e.printStackTrace( );
             webSocket.close(1011, "InternalServerError");
-        } finally {
-            PoolController.returnConnection(connection);
         }
     }
 
@@ -82,7 +75,7 @@ class WSCore extends WebSocketServer {
             packet = new Helper.MessagePacket(message);
         } catch (ParseException e) {
             if (Starter.DEBUG >= 1) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.DataErrors.NotValidData( ).serialize("MISS"));
+            webSocket.send(SystemResponses.Errors.Systems.MESSAGE_DAMAGED( ));
             return;
         }
 
@@ -90,14 +83,11 @@ class WSCore extends WebSocketServer {
 
         try {
             cmd = Commands.byIntents(packet.intention);
+            assert cmd != null;
             packet.parseData(cmd.pattern);
-        } catch (NoSuchElementException | UnsupportedOperationException e) {
+        } catch (JsonProcessingException | AssertionError e) {
             if (Starter.DEBUG >= 1) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ServerErrors.OutdatedServer( ).serialize(packet.hash));
-            return;
-        } catch (JsonException e) {
-            if (Starter.DEBUG >= 1) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.DataErrors.NotValidData( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Systems.NOT_VALID_INTENTIONS( ));
             return;
         }
 
@@ -106,21 +96,27 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_USERS_MESSAGES_POST_NEW -> {
                     switch (((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).type) {
                         case "TEXT" -> {
-                            if (!clients.isUserCanPostToChannel(webSocket, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
+                            if (!clients.isUserCanPostToChannel(
+                                    webSocket,
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel))
                                 throw new AccessDenied( );
+
+                            Pair<Long, Timestamp> meta = Channels.Messages.postTextMessage(
+                                    clients.getID(webSocket),
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).media,
+                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files);
 
                             clients.sendCommandToChannel(
                                     ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                     new ResponsesPatterns.Channels.User.Messages.Post.New(
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
                                             clients.getID(webSocket),
+                                            "TEXT",
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                            Channels.Messages.postTextMessage(
-                                                    clients.getID(webSocket),
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).channel,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).alias,
-                                                    ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).text,
-                                                    null, ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files),
+                                            meta.value( ),
                                             null,
                                             ((CommandsPatterns.Channels.User.Messages.Post.New) packet.postData).files).serialize(packet.hash));
                         }
@@ -130,7 +126,7 @@ class WSCore extends WebSocketServer {
                 case CHANNELS_SYSTEM_LISTENING_ADD -> {
                     clients.addListeningClientToChannel(
                             webSocket,
-                            new DataThreads.Channel(
+                            new datathreads.Channel(
                                     ((CommandsPatterns.Channels.System.Notification.Listening.Add) packet.postData).channel,
                                     Channels.Users.Presence.getUserFromChannel(
                                             clients.getID(webSocket),
@@ -154,7 +150,8 @@ class WSCore extends WebSocketServer {
                         new ResponsesPatterns.Channels.System.Control.Create(
                                 Channels.create(
                                         clients.getID(webSocket),
-                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title),
+                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title,
+                                        ((CommandsPatterns.Channels.System.Control.Create) packet.postData).isPublic),
                                 ((CommandsPatterns.Channels.System.Control.Create) packet.postData).title).serialize(packet.hash));
                 case CHANNELS_USERS_INVITATIONS_CREATE -> webSocket.send(
                         new ResponsesPatterns.Channels.Invitations.Create(
@@ -188,21 +185,21 @@ class WSCore extends WebSocketServer {
                 }
                 default -> throw new ParseException("OUTDATED SERVER", 1);
             }
-        } catch (SQLException | IOException e) {
+        } catch (SQLException | IOException | ClickHouseException e) {
             if (Starter.DEBUG >= 1) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ServerErrors.InternalError( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Systems.SERVER_ERROR(packet.hash));
         } catch (ParseException e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.DataErrors.NotValidData( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Users.NOT_VALID_DATA(packet.hash));
         } catch (AccessDenied e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AccessDenied( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Users.ACCESS_DENIED(packet.hash));
         } catch (AlreadyCompleted e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.AlreadyCompleted( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Users.ALREADY_COMPLETED(packet.hash));
         } catch (NotFound e) {
             if (Starter.DEBUG >= 2) e.printStackTrace( );
-            webSocket.send(new ResponsesPatterns.System.ClientErrors.AccessErrors.NotFound( ).serialize(packet.hash));
+            webSocket.send(SystemResponses.Errors.Users.NOT_FOUND(packet.hash));
         } catch (Throwable e) {
             System.out.println("----- Not handling exception -----");
             e.printStackTrace( );
@@ -211,17 +208,13 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void onClose (WebSocket webSocket, int status, String reason, boolean remote) {
+        if (Arrays.asList(4002, 1007, 1011).contains(status)) // TODO: clean up
+            return;
+
         if (Starter.DEBUG > 2)
             System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected, by reason \{Helper.firstNonNull(reason, "not specified")}, \{remote ? "remote" : "local"}");
 
-        if (!remote) return;
-        try {
-            clients.getClient(webSocket).close(1001, "");
-        } catch (SQLException | NullPointerException e) {
-            e.printStackTrace( );
-        } finally {
-            clients.removeClient(webSocket);
-        }
+        clients.removeClient(webSocket, 1001, "", remote, false);
     }
 
     @Override
@@ -230,13 +223,7 @@ class WSCore extends WebSocketServer {
         if (Starter.DEBUG > 1)
             System.out.println(STR."Client \{clients.getClient(webSocket).id} disconnected with error");
 
-        try {
-            clients.getClient(webSocket).close(1001, "InternalServerError");
-        } catch (SQLException | NullPointerException ex) {
-            ex.printStackTrace( );
-        } finally {
-            clients.removeClient(webSocket);
-        }
+        clients.removeClient(webSocket, 1001, "CloseOnError", false, true);
     }
 
     @Override
@@ -246,7 +233,12 @@ class WSCore extends WebSocketServer {
 
     @Override
     public void stop ( ) throws InterruptedException {
-        clients.closeAllClients(1001, "ServerShutdown");
+        try {
+            clients.closeAllClients(1001, "ServerShutdown");
+        } catch (SQLException e) {
+            e.printStackTrace( );
+        }
+
         super.stop( );
     }
 }

@@ -1,8 +1,8 @@
-import com.jsoniter.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
 
 public class CommandsPatterns {
@@ -10,48 +10,7 @@ public class CommandsPatterns {
         public static class ConnectionParameters {
             static class ConnectionControl {
                 @JsonProperty(required = true)
-                boolean status;
-            }
-        }
-
-        static class TTokens {
-            enum Generate {
-                HLB_CHANNELS_USERS_DOWNLOAD(null, Patterns.HLB.Channels.class),
-                HLB_CHANNELS_USERS_DOWNLOAD_MESSAGES(null, Patterns.HLB.Channels.Users.Messages.class),
-                HLB_CHANNELS_USERS_DOWNLOAD_PERMISSIONS(null, Patterns.HLB.Channels.Users.Permissions.class);
-
-                final String intents;
-                final Class<?> pattern;
-
-                Generate (String intents, Class<?> pattern) {
-                    this.intents = intents;
-                    this.pattern = pattern;
-                }
-
-                public static Generate byIntents (String intents) {
-                    return Arrays.stream(Generate.values( ))
-                            .filter(v -> Objects.equals(v.intents, intents))
-                            .findFirst( )
-                            .orElse(null);
-                }
-            }
-
-            static class Patterns {
-                public static class HLB {
-                    public static class Channels {
-                        public static class Users {
-                            public static class Messages {
-                                @JsonProperty(required = true)
-                                long channel;
-                            }
-
-                            public static class Permissions {
-                                @JsonProperty(required = true)
-                                long channel;
-                            }
-                        }
-                    }
-                }
+                Boolean status;
             }
         }
     }
@@ -62,12 +21,16 @@ public class CommandsPatterns {
                 public static class Create {
                     @JsonProperty(required = true)
                     String title;
-                    String description;
+                    @JsonProperty
+                    String description = "";
+                    @JsonProperty
+                    Boolean isPublic = false;
                 }
 
                 public static class Delete {
                     @JsonProperty(required = true)
-                    long id;
+                    Long id;
+                    @JsonProperty
                     String reason;
                 }
             }
@@ -76,12 +39,12 @@ public class CommandsPatterns {
                 static class Listening {
                     static class Add {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                     }
 
                     static class Remove {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                     }
                 }
             }
@@ -89,10 +52,12 @@ public class CommandsPatterns {
             public static class Invitations {
                 public static class Create {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
 
-                    @JsonProperty("max-uses")
+                    @JsonProperty(value = "max-uses")
                     Integer permittedUses;
+                    @JsonSerialize(using = JsonSerializers.TimestampSerializer.class)
+                    @JsonDeserialize(using = JsonSerializers.TimestampDeserializer.class)
                     Timestamp expiration;
                 }
 
@@ -108,17 +73,17 @@ public class CommandsPatterns {
                 public static class Groups {
                     public static class Create {
                         @JsonProperty(required = true)
-                        long channel;
-                        byte position = 0;
+                        Long channel;
+                        Byte position;
                         @JsonProperty(required = true)
                         String title;
                     }
 
                     public static class Edit {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                         @JsonProperty(required = true)
-                        byte group;
+                        Byte group;
                         @JsonProperty(required = true)
                         String key;
                         @JsonProperty(required = true)
@@ -127,29 +92,29 @@ public class CommandsPatterns {
 
                     public static class Delete {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                         @JsonProperty(required = true)
-                        byte group;
+                        Byte group;
                     }
                 }
 
                 public static class Users {
                     public static class Groups {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                         @JsonProperty(required = true)
-                        byte group;
+                        Byte group;
                         @JsonProperty(required = true)
-                        long user;
+                        Long user;
                         @JsonProperty(required = true)
-                        boolean status;
+                        Boolean status;
                     }
 
                     public static class Edit {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                         @JsonProperty(required = true)
-                        byte group;
+                        Byte group;
                         @JsonProperty(required = true)
                         String key;
                         @JsonProperty(required = true)
@@ -161,35 +126,39 @@ public class CommandsPatterns {
             public static class Users {
                 public static class Add {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
                     @JsonProperty(required = true)
-                    long user;
+                    Long user;
                 }
 
                 public static class Mute {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
                     @JsonProperty(required = true)
-                    long user;
+                    Long user;
                     String reason;
+                    @JsonSerialize(using = JsonSerializers.TimestampSerializer.class)
+                    @JsonDeserialize(using = JsonSerializers.TimestampDeserializer.class)
                     Timestamp ending;
                 }
 
                 public static class Ban {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
                     @JsonProperty(required = true)
-                    long user;
+                    Long user;
                     @JsonProperty(required = true)
                     String reason;
+                    @JsonSerialize(using = JsonSerializers.TimestampSerializer.class)
+                    @JsonDeserialize(using = JsonSerializers.TimestampDeserializer.class)
                     Timestamp ending;
                 }
 
                 public static class Kick {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
                     @JsonProperty(required = true)
-                    long client;
+                    Long client;
                 }
             }
         }
@@ -199,15 +168,22 @@ public class CommandsPatterns {
                 public static class Post {
                     public static class New {
                         @JsonProperty(required = true)
-                        long channel;
+                        Long channel;
                         @JsonProperty(required = true)
                         String type;
 
-                        String text;
-                        UUID alias;
-                        Timestamp answer;
-                        Long[][] media;
-                        Long[] files;
+                        @JsonProperty
+                        String text = null;
+                        @JsonSerialize(using = JsonSerializers.UUIDSerializer.class)
+                        @JsonDeserialize(using = JsonSerializers.UUIDDeserializer.class)
+                        UUID alias = null;
+                        @JsonSerialize(using = JsonSerializers.TimestampSerializer.class)
+                        @JsonDeserialize(using = JsonSerializers.TimestampDeserializer.class)
+                        Long answer = null;
+                        @JsonProperty
+                        Long[][] media = null;
+                        @JsonProperty
+                        Long[] files = null;
                     }
                 }
             }
@@ -220,7 +196,7 @@ public class CommandsPatterns {
 
                 public static class Leave {
                     @JsonProperty(required = true)
-                    long channel;
+                    Long channel;
                 }
             }
         }

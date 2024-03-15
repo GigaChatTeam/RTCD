@@ -1,96 +1,20 @@
-import com.jsoniter.annotation.JsonIgnore;
-import com.jsoniter.output.JsonStream;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 public class ResponsesPatterns {
-    public static class System {
-        public static class ServerErrors {
-            public static class InternalError {
-                @JsonIgnore
-                static final String intention = "88";
+    private static final ObjectMapper objectMapper = new ObjectMapper( );
 
-                String serialize (String controlHash) {
-                    return STR."\{intention}%\{controlHash}%{}";
-                }
-            }
-
-            public static class OutdatedServer {
-                @JsonIgnore
-                static final String intention = "89";
-
-                String serialize (String controlHash) {
-                    return STR."\{intention}%\{controlHash}%{}";
-                }
-            }
-        }
-
-        public static class ClientErrors {
-            public static class DataErrors {
-                public static class NotValidIntentions {
-                    static final String intention = "210";
-
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%{}";
-                    }
-                }
-
-                public static class NotValidData {
-                    static final String intention = "210";
-
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%{}";
-                    }
-                }
-            }
-
-            public static class AccessErrors {
-                public static class AccessDenied {
-                    @JsonIgnore
-                    static final String intention = "89";
-
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%{}";
-                    }
-                }
-
-                public static class AlreadyCompleted {
-                    @JsonIgnore
-                    static final String intention = "212";
-
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%{}";
-                    }
-                }
-
-                public static class NotFound {
-                    @JsonIgnore
-                    static final String intention = "213";
-
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%{}";
-                    }
-                }
-            }
-        }
-
-        public static class ConnectionParameters {
-            public static class ConnectionControl {
-                @JsonIgnore
-                static final String intention = "88";
-                boolean status;
-
-                ConnectionControl (boolean status) {
-                    this.status = status;
-                }
-
-                String serialize (String controlHash) {
-                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
-                }
-            }
-        }
+    static {
+        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
+
 
     public static class Channels {
         public static class System {
@@ -99,7 +23,7 @@ public class ResponsesPatterns {
                     @JsonIgnore
                     static final String intention = "";
 
-                    long id;
+                    Long id;
                     String title;
                     String description = "";
 
@@ -114,8 +38,8 @@ public class ResponsesPatterns {
                         this.title = title;
                     }
 
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    String serialize (String controlHash) throws JsonProcessingException {
+                        return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                     }
                 }
 
@@ -136,8 +60,8 @@ public class ResponsesPatterns {
                         this.channel = channel;
                     }
 
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    String serialize (String controlHash) throws JsonProcessingException {
+                        return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                     }
                 }
 
@@ -151,8 +75,8 @@ public class ResponsesPatterns {
                         this.channel = channel;
                     }
 
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    String serialize (String controlHash) throws JsonProcessingException {
+                        return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                     }
                 }
             }
@@ -170,8 +94,8 @@ public class ResponsesPatterns {
                         @JsonIgnore
                         static final String intention = "5CF";
 
-                        long channel;
-                        long author;
+                        Long channel;
+                        Long author;
                         String type;
 
                         String text;
@@ -181,17 +105,20 @@ public class ResponsesPatterns {
                         Long[][] media;
                         Long[] files;
 
-                        New (long channel, long author, String text, Timestamp posted, Long[][] media, Long[] files) {
+                        New (Long channel, Long author, String type, String text, Timestamp posted, Long[][] media, Long[] files) {
                             this.channel = channel;
                             this.author = author;
+                            this.type = type;
+                            this.alias = null;
                             this.text = text;
                             this.posted = posted;
                             this.media = media;
                             this.files = files;
                         }
 
-                        New (long channel, UUID alias, String text, Timestamp posted, Long[][] media, Long[] files) {
+                        New (Long channel, UUID alias, String type, String text, Timestamp posted, Long[][] media, Long[] files) {
                             this.channel = channel;
+                            this.author = null;
                             this.alias = alias;
                             this.text = text;
                             this.posted = posted;
@@ -199,8 +126,8 @@ public class ResponsesPatterns {
                             this.files = files;
                         }
 
-                        String serialize (String controlHash) {
-                            return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                        String serialize (String controlHash) throws JsonProcessingException {
+                            return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                         }
                     }
                 }
@@ -217,8 +144,8 @@ public class ResponsesPatterns {
                         this.channel = channel;
                     }
 
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    String serialize (String controlHash) throws JsonProcessingException {
+                        return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                     }
                 }
 
@@ -230,8 +157,8 @@ public class ResponsesPatterns {
 
                     }
 
-                    String serialize (String controlHash) {
-                        return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                    String serialize (String controlHash) throws JsonProcessingException {
+                        return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                     }
                 }
             }
@@ -250,8 +177,8 @@ public class ResponsesPatterns {
                     this.uri = uri;
                 }
 
-                String serialize (String controlHash) {
-                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                String serialize (String controlHash) throws JsonProcessingException {
+                    return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                 }
             }
 
@@ -265,8 +192,8 @@ public class ResponsesPatterns {
                     this.uri = uri;
                 }
 
-                String serialize (String controlHash) {
-                    return STR."\{intention}%\{controlHash}%\{JsonStream.serialize(this)}";
+                String serialize (String controlHash) throws JsonProcessingException {
+                    return STR."\{intention}%\{controlHash}%\{objectMapper.writeValueAsString(this)}";
                 }
             }
         }

@@ -1,5 +1,6 @@
 package dbexecutors.sql;
 
+import co.elastic.clients.util.Pair;
 import exceptions.AccessDenied;
 import exceptions.AlreadyCompleted;
 import exceptions.NotFound;
@@ -11,18 +12,20 @@ import org.postgresql.util.PSQLException;
 
 import java.sql.*;
 import java.util.HashMap;
-import java.util.UUID;
+
+import static java.lang.String.format;
 
 public class ChannelsExecutor {
-    public static long create (@NotNull Connection conn, long owner, @NotNull String title) throws SQLException {
+    public static long create (@NotNull Connection conn, long owner, @NotNull String title, boolean isPublic) throws SQLException {
         String sql = """
-                    SELECT channels.create(?, ?)
+                    SELECT "channels"."create"(?, ?, ?)
                 """;
         PreparedStatement stmt;
 
         stmt = conn.prepareStatement(sql);
         stmt.setLong(1, owner);
         stmt.setString(2, title);
+        stmt.setBoolean(3, isPublic);
 
         ResultSet rs = stmt.executeQuery( );
 
@@ -179,25 +182,19 @@ public class ChannelsExecutor {
     }
 
     public static class Messages {
-        public static Timestamp postTextMessage (@NotNull Connection conn, long author, long channel, @Nullable UUID alias, @NotNull String text, @Nullable Long[][] media, @Nullable Long[] files) throws SQLException {
-            String sql = """
-                        SELECT channels.post_message_new_text(?, ?, ?, ?, ?, ?)
-                    """;
+        public static @NotNull Pair<Long, Timestamp> getNextMessageId (@NotNull Connection conn, @NotNull Long channel) throws SQLException {
+            String sql = format("""
+                        SELECT
+                            nextval('channels.channel_%s_messages_ids_sequence'),
+                            TIMEZONE('UTC', now())
+                    """, channel);
 
             PreparedStatement stmt = conn.prepareStatement(sql);
-
-            stmt.setLong(1, author);
-            stmt.setObject(2, alias);
-            stmt.setLong(3, channel);
-            stmt.setString(4, text);
-            stmt.setArray(5, conn.createArrayOf("BIGINT", media));
-            stmt.setArray(6, conn.createArrayOf("BIGINT", files));
-
             ResultSet rs = stmt.executeQuery( );
 
             rs.next( );
 
-            return rs.getTimestamp(1);
+            return new Pair<>(rs.getLong(1), rs.getTimestamp(2));
         }
     }
 

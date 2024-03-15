@@ -15,7 +15,7 @@ public class Starter {
     public static volatile boolean running = false;
 
     static byte DEBUG;
-    static Ini config;
+    static Ini configFile;
     static int wsCorePort;
     static int authorizerPort;
 
@@ -23,14 +23,8 @@ public class Starter {
     static Authorizer authorizer;
 
     static {
-        JsonIteratorExtra.SQLTimestampSupport.registerHandler( );
-        JsonIteratorExtra.UUIDSupport.registerHandler( );
-    }
-
-    static {
         try {
-            Console.registerHandler(new String[]{"stop"}, (String[] _) -> running = false);
-            Console.registerHandler(new String[]{"config", "reload"}, (String[] _) -> PoolController.Configurator.reloadConfiguration( ));
+            Console.registerHandler(new String[]{ "stop" }, (String[] _) -> running = false);
         } catch (NodePathAlreadyRegisteredException | HandlerNodeTryRegisterSubNodeException e) {
             System.out.println("Initial server error");
             e.printStackTrace( );
@@ -46,12 +40,14 @@ public class Starter {
                 createConfiguration(file);
             }
 
-            config = new Ini(file);
+            configFile = new Ini(file);
 
-            DEBUG = config.get("server", "debug", byte.class);
+            DEBUG = configFile.get("server", "debug", byte.class);
 
-            wsCorePort = config.get("ws-core", "port", int.class);
-            authorizerPort = config.get("http-authorizer", "port", int.class);
+            PoolController.initializePool(new PoolController.Configuration(configFile));
+
+            wsCorePort = configFile.get("ws-core", "port", int.class);
+            authorizerPort = configFile.get("http-authorizer", "port", int.class);
         } catch (IOException e) {
             System.out.println("Settings file error");
             e.printStackTrace( );
@@ -69,7 +65,6 @@ public class Starter {
             System.exit(1);
         }
 
-        PoolController.start(Thread.currentThread( ), Starter::stopRuntimeByCriticalError);
         Console.start( );
         if (!running) System.exit(1);
 
@@ -106,7 +101,12 @@ public class Starter {
 
                 [http-authorizer]
                 port = 8081
-                      
+                
+                [database-pool]
+                min-connections = 0
+                max-connections = 1
+                timeout = 30000
+                
                 [database]
                 base = postgres
                 user = postgres

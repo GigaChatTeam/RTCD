@@ -1,47 +1,55 @@
-import com.jsoniter.JsonIterator;
-import com.jsoniter.annotation.JsonProperty;
-import com.jsoniter.spi.JsonException;
+import com.clickhouse.client.ClickHouseException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import dbexecutors.Users;
 import dbexecutors.sql.PermissionOperator;
-import dbexecutors.sql.PolledConnection;
-import dbexecutors.sql.PoolController;
 import exceptions.InvalidAuthorizationDataException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import static dbexecutors.sql.SystemExecutor.logInterruptedLogin;
+import static dbexecutors.Helper.SHA512;
+import static dbexecutors.sql.PoolController.getConnection;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Objects.requireNonNull;
 import static java.util.UUID.randomUUID;
 
-public class Authorizer {
+class Authorizer {
+    private static final ObjectMapper objectMapper = new ObjectMapper( );
+
     private final InetSocketAddress address;
     private final HttpServer authorizeServer;
     private final HashSet<ExpectedClient> expectedClients = new HashSet<>( );
     private final Thread tokensCleaningDaemon = new Thread(( ) -> {
         List<ExpectedClient> toClear;
+
         while (Starter.running) {
-            long current = Date.from(ofEpochSecond(currentTimeMillis( ))).getTime( );
+            Date current = Date.from(ofEpochSecond(currentTimeMillis( )));
 
             synchronized (expectedClients) {
                 toClear = expectedClients.stream( )
-                        .filter(client -> client.clearing(current))
+                        .filter(client -> client.validateForClean(current))
+                        .peek(ExpectedClient::close)
                         .toList( );
             }
 
@@ -62,42 +70,44 @@ public class Authorizer {
 
     private String generateRandomAccessToken (long clientID) {
         while (true) {
-            String randomSecret = Helper.SHA512(randomUUID( ).toString( ));
+            String randomSecret = SHA512(randomUUID( ).toString( ));
+
             synchronized (expectedClients) {
                 if (expectedClients.stream( )
-                        .noneMatch(client ->
-                                Objects.equals(client.token, randomSecret) &&
-                                client.id == clientID)) {
+                        .noneMatch(
+                                client ->
+                                        Objects.equals(client.token, randomSecret) &&
+                                        client.id == clientID)) {
                     return randomSecret;
                 }
             }
         }
     }
 
-    private String addClient (@NotNull Connection connection, Long id, String secret, String key, String ipAddress, String agent) throws InvalidAuthorizationDataException, SQLException {
+    private String addClient (@NotNull Connection connection, Long id, String secret, String key, InetAddress ipAddress, String agent) throws InvalidAuthorizationDataException, SQLException {
+        if (!PermissionOperator.validateToken(connection, id, secret, key))
+            throw new InvalidAuthorizationDataException( );
 
-        try {
-            if (!PermissionOperator.validateToken(connection, id, secret, key))
-                throw new InvalidAuthorizationDataException( );
-        } finally {
-            connection.commit();
-        }
 
-        String token = generateRandomAccessToken(id);
+        String token;
 
-        synchronized (expectedClients) {
-            while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent))) {
-                token = generateRandomAccessToken(id);
-            }
-        }
+        do {
+            token = generateRandomAccessToken(id);
+        } while (!addClient(new ExpectedClient(token, id, key, ipAddress, agent)));
+
 
         return token;
     }
 
     protected @Nullable ExpectedClient validateClient (Long id, String token) {
+//        return expectedClients.stream( )
+//                .filter(client -> Objects.equals(client.id, id) && Objects.equals(client.token, token))
+//                .findAny( )
+//                .orElse(null);
+
         synchronized (expectedClients) {
             ExpectedClient expectedClient = expectedClients.stream( )
-                    .filter(client -> client.id == id && Objects.equals(client.token, token))
+                    .filter(client -> Objects.equals(client.id, id) && Objects.equals(client.token, token))
                     .findFirst( )
                     .orElse(null);
 
@@ -139,10 +149,11 @@ public class Authorizer {
         public void handle (@NotNull HttpExchange exchange) throws IOException {
             AuthorizeRequest request = null;
             Headers headers = null;
-
-            PolledConnection connection = PoolController.getConnection( );
+            Connection connection = null;
 
             try {
+                connection = getConnection();
+
                 if (!"POST".equals(exchange.getRequestMethod( ))) {
                     exchange.sendResponseHeaders(405, Responses.methodNotAllowed.length( ));
                     OutputStream os = exchange.getResponseBody( );
@@ -152,7 +163,7 @@ public class Authorizer {
                     return;
                 }
 
-                request = JsonIterator.deserialize(
+                request = objectMapper.readValue(
                         new String(
                                 exchange.getRequestBody( ).readAllBytes( ),
                                 StandardCharsets.UTF_8),
@@ -161,18 +172,18 @@ public class Authorizer {
 
                 String response = format(
                         Responses.success, addClient(
-                                connection.conn,
+                                connection,
                                 request.client,
                                 request.secret,
                                 request.key,
-                                exchange.getRemoteAddress( ).getHostName( ),
+                                exchange.getRemoteAddress( ).getAddress( ),
                                 headers.get("User-Agent").getFirst( )));
 
                 exchange.sendResponseHeaders(200, response.length( ));
                 OutputStream os = exchange.getResponseBody( );
                 os.write(response.getBytes( ));
                 os.close( );
-            } catch (JsonException e) {
+            } catch (JsonProcessingException e) {
                 exchange.sendResponseHeaders(400, Responses.lackOfData.length( ));
                 OutputStream os = exchange.getResponseBody( );
                 os.write(Responses.lackOfData.getBytes( ));
@@ -184,30 +195,41 @@ public class Authorizer {
                 os.close( );
 
                 try {
-                    logInterruptedLogin(
-                            connection.conn,
+                    Users.Login.login(
                             requireNonNull(request).client,
-                            Helper.SHA512(request.key),
-                            headers.get("User-Agent").getFirst( ));
-                } catch (SQLException ex) {
+                            Timestamp.from(Instant.ofEpochMilli(currentTimeMillis( ))),
+                            false,
+                            false,
+                            headers.get("User-Agent").getFirst( ),
+                            exchange.getRemoteAddress( ));
+                } catch (ClickHouseException ex) {
                     ex.printStackTrace( );
                 }
-            } catch (IOException _) {
+            } catch (IOException e) {
+                e.printStackTrace( );
             } catch (SQLException e) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace( );
+                if (connection != null) {
+                    try {
+                        connection.rollback( );
+                    } catch (SQLException ex) {
+                        ex.printStackTrace( );
+                    }
                 }
+
                 exchange.sendResponseHeaders(500, Responses.internalServerError.length( ));
                 OutputStream os = exchange.getResponseBody( );
                 os.write(Responses.internalServerError.getBytes( ));
                 os.close( );
             } finally {
-                PoolController.returnConnection(connection);
+                if (connection != null) {
+                    try {
+                        connection.commit( );
+                    } catch (SQLException e) {
+                        e.printStackTrace( );
+                    }
+                }
+                exchange.close( );
             }
-
-            exchange.close( );
         }
 
         static class Responses {
